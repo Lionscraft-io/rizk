@@ -1,0 +1,1973 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RIZK — Catastrophe Bond Markets</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f8fafc; color: #0f172a; min-height: 100vh; -webkit-font-smoothing: antialiased; }
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+  :root {
+    --bg: #f8fafc; --secondary: #f1f5f9; --accent: #4a9eff; --accent-dim: rgba(26,90,184,0.08);
+    --accent-mid: rgba(26,90,184,0.15); --warning: #d97706; --danger: #dc2626; --surface: #ffffff;
+    --border: #e2e8f0; --text: #0f172a; --muted: #64748b; --green: #16a34a; --red: #dc2626;
+    --card-hover: #f8fafc; --blue-primary: #1a5ab8; --blue-pale: #8ec5ff; --blue-dark: #0d2b5e;
+  }
+  a { color: inherit; text-decoration: none; }
+
+  /* ─── NAV ─── */
+  nav { border-bottom: 1px solid var(--border); background: rgba(255,255,255,0.9); backdrop-filter: blur(12px); position: sticky; top: 0; z-index: 50; }
+  .nav-inner { max-width: 72rem; margin: 0 auto; padding: 0 1.5rem; height: 56px; display: flex; align-items: center; justify-content: space-between; }
+  .nav-left { display: flex; align-items: center; gap: 2.5rem; }
+  .logo { font-size: 1.375rem; font-weight: 800; color: var(--blue-primary); letter-spacing: 2px; }
+  .logo sub { font-size: 0.5rem; font-weight: 500; color: var(--muted); vertical-align: baseline; margin-left: 4px; letter-spacing: 0.04em; text-transform: uppercase; }
+  .nav-links { display: flex; gap: 2px; }
+  .nl { color: var(--muted); padding: 0.4rem 0.75rem; border-radius: 6px; font-size: 0.8125rem; cursor: pointer; transition: all 0.15s; }
+  .nl:hover { color: var(--text); background: var(--secondary); }
+  .nl.on { color: var(--text); font-weight: 600; background: var(--secondary); }
+  .cbtn { background: var(--blue-primary); color: #fff; font-weight: 600; padding: 0.45rem 1.125rem; border-radius: 8px; border: none; cursor: pointer; font-size: 0.8125rem; transition: all 0.3s; box-shadow: 0 2px 8px rgba(26,90,184,0.25); }
+  .cbtn:hover { background: #1550a5; box-shadow: 0 4px 16px rgba(26,90,184,0.35); }
+
+  /* ─── LAYOUT ─── */
+  main { max-width: 72rem; margin: 0 auto; padding: 2rem 1.5rem 4rem; }
+  .hidden { display: none !important; }
+
+  /* ─── BADGES ─── */
+  .badge { font-size: 0.625rem; padding: 3px 8px; border-radius: 9999px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; display: inline-flex; align-items: center; gap: 4px; }
+  .badge::before { content: ''; width: 5px; height: 5px; border-radius: 50%; }
+  .b-open { background: rgba(26,90,184,0.1); color: var(--blue-primary); } .b-open::before { background: var(--blue-primary); }
+  .b-live { background: rgba(22,163,74,0.1); color: #16a34a; } .b-live::before { background: #16a34a; }
+  .b-done { background: rgba(100,116,139,0.1); color: #475569; } .b-done::before { background: #475569; }
+  .b-trig { background: rgba(220,38,38,0.1); color: #dc2626; } .b-trig::before { background: #dc2626; }
+
+  /* ─── BUTTONS ─── */
+  .btn { display: inline-flex; align-items: center; justify-content: center; padding: 0.75rem 1.5rem; border-radius: 8px; border: none; font-weight: 600; font-size: 0.875rem; cursor: pointer; transition: all 0.15s; }
+  .btn-block { width: 100%; }
+  .btn-accent { background: var(--blue-primary); color: #fff; box-shadow: 0 4px 20px rgba(26,90,184,0.3); }
+  .btn-accent:hover { background: #1550a5; transform: translateY(-1px); box-shadow: 0 6px 30px rgba(26,90,184,0.4); }
+  .btn-green { background: #16a34a; color: white; }
+  .btn-red { background: #dc2626; color: white; }
+  .btn-ghost { background: transparent; border: 1px solid var(--border); color: var(--text); }
+  .btn-ghost:hover { border-color: var(--blue-primary); color: var(--blue-primary); background: rgba(26,90,184,0.04); }
+  .btn-sm { padding: 0.4rem 0.875rem; font-size: 0.75rem; border-radius: 6px; }
+
+  /* ─── INPUTS ─── */
+  .field { margin-bottom: 1rem; }
+  .field-label { display: flex; justify-content: space-between; font-size: 0.8125rem; margin-bottom: 0.375rem; }
+  .field-label .l { color: var(--text); font-weight: 500; }
+  .field-label .r { color: var(--muted); font-size: 0.75rem; }
+  .input-box { position: relative; }
+  .input-box input { width: 100%; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 0.75rem 5rem 0.75rem 1rem; color: var(--text); font-size: 1rem; outline: none; transition: border 0.15s; }
+  .input-box input:focus { border-color: var(--blue-primary); box-shadow: 0 0 0 3px rgba(26,90,184,0.1); }
+  .input-box .unit { position: absolute; right: 1rem; top: 50%; transform: translateY(-50%); color: var(--muted); font-size: 0.8125rem; font-weight: 500; }
+  .input-box .max { position: absolute; right: 1rem; top: 50%; transform: translateY(-50%); background: var(--accent-dim); color: var(--blue-primary); border: none; padding: 2px 8px; border-radius: 4px; font-size: 0.625rem; font-weight: 700; cursor: pointer; letter-spacing: 0.04em; }
+
+  .info-box { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 0.875rem 1rem; margin-bottom: 1rem; }
+  .ir { display: flex; justify-content: space-between; font-size: 0.8125rem; padding: 0.2rem 0; }
+  .ir .k { color: var(--muted); }
+  .ir .v { font-weight: 500; }
+  .ir .v.g { color: var(--blue-primary); }
+  .ir .v.w { color: var(--warning); }
+  .divider { border: none; border-top: 1px solid var(--border); margin: 0.375rem 0; }
+
+  /* ─── PANEL ─── */
+  .panel { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+  .ph { padding: 0.875rem 1.25rem; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+  .ph h3 { font-size: 0.9375rem; font-weight: 600; }
+  .pb { padding: 1.25rem; }
+
+  /* ════════════════════════════════════════════
+     PAGE: MARKETS (HOME)
+     ════════════════════════════════════════════ */
+  .hero { padding: 3.5rem 0 1rem; }
+  .hero h1 { font-size: 2.5rem; font-weight: 800; letter-spacing: -0.035em; line-height: 1.15; margin-bottom: 0.75rem; color: var(--text); }
+  .hero h1 em { font-style: normal; background: linear-gradient(135deg, var(--blue-primary), var(--accent)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  .hero p { color: var(--muted); font-size: 1.0625rem; max-width: 42rem; line-height: 1.6; margin-bottom: 1.75rem; }
+  .hero-btns { display: flex; gap: 0.75rem; }
+
+  .market-section { margin-top: 2.5rem; }
+  .section-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 1rem; }
+  .section-head h2 { font-size: 1.125rem; font-weight: 700; }
+  .section-head .sub { font-size: 0.8125rem; color: var(--muted); }
+
+  .mgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 1rem; }
+
+  /* Market Card v3 */
+  .mc { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; transition: all 0.2s; cursor: pointer; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+  .mc:hover { border-color: var(--blue-primary); transform: translateY(-2px); box-shadow: 0 8px 24px rgba(26,90,184,0.12); }
+  .mc-body { padding: 1.25rem; }
+  .mc-r1 { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 0.625rem; }
+  .mc-peril { display: flex; gap: 0.625rem; align-items: center; }
+  .mc-icon { font-size: 2rem; line-height: 1; }
+  .mc-name { font-size: 1rem; font-weight: 600; }
+  .mc-region { font-size: 0.6875rem; color: var(--muted); margin-top: 1px; }
+  .mc-desc { font-size: 0.8125rem; color: var(--muted); line-height: 1.5; margin-bottom: 1rem; }
+  .mc-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 0.875rem 1.5rem; margin-bottom: 1rem; }
+  .mc-s .sl { font-size: 0.625rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; }
+  .mc-s .sv { font-size: 0.9375rem; font-weight: 600; margin-top: 1px; }
+  .mc-s .sv.acc { color: var(--blue-primary); }
+
+  .mc-prog { margin-bottom: 0.125rem; }
+  .mc-prog-head { display: flex; justify-content: space-between; font-size: 0.6875rem; color: var(--muted); margin-bottom: 4px; }
+  .mc-prog-head .pct { color: var(--blue-primary); font-weight: 600; }
+  .prog { width: 100%; height: 5px; background: var(--secondary); border-radius: 9999px; overflow: hidden; }
+  .prog .fill { height: 100%; background: linear-gradient(90deg, var(--blue-primary), var(--accent)); border-radius: 9999px; }
+
+  .mc-foot { padding: 0.75rem 1.25rem; border-top: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; background: var(--bg); }
+  .mc-foot .cta { font-size: 0.8125rem; font-weight: 600; color: var(--blue-primary); }
+  .mc-foot .meta { font-size: 0.6875rem; color: var(--muted); }
+
+  /* ════════════════════════════════════════════
+     PAGE: HOW IT WORKS
+     ════════════════════════════════════════════ */
+  .hiw-hero { text-align: center; padding: 3rem 0 2rem; }
+  .hiw-hero h1 { font-size: 2rem; font-weight: 800; margin-bottom: 0.5rem; }
+  .hiw-hero p { color: var(--muted); font-size: 1rem; max-width: 36rem; margin: 0 auto; }
+
+  .hiw-section { margin-bottom: 3rem; }
+  .hiw-section h2 { font-size: 1.25rem; font-weight: 700; margin-bottom: 0.5rem; }
+  .hiw-section > p { color: var(--muted); font-size: 0.9375rem; line-height: 1.65; margin-bottom: 1.5rem; max-width: 48rem; }
+
+  /* Diagram */
+  .diagram { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 2rem; margin-bottom: 2rem; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+  .flow { display: flex; align-items: flex-start; gap: 0; justify-content: center; flex-wrap: wrap; }
+  .flow-node { text-align: center; width: 140px; }
+  .flow-circle { width: 64px; height: 64px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; margin: 0 auto 0.5rem; }
+  .flow-label { font-size: 0.75rem; font-weight: 600; margin-bottom: 0.25rem; }
+  .flow-desc { font-size: 0.625rem; color: var(--muted); line-height: 1.4; }
+  .flow-arrow { display: flex; align-items: center; padding-top: 1rem; color: var(--blue-primary); font-size: 1.25rem; width: 40px; justify-content: center; }
+
+  /* Concept cards */
+  .concepts { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; margin-bottom: 2rem; }
+  .concept { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+  .concept .icon { font-size: 1.5rem; margin-bottom: 0.5rem; }
+  .concept h3 { font-size: 1rem; font-weight: 600; margin-bottom: 0.5rem; }
+  .concept p { font-size: 0.8125rem; color: var(--muted); line-height: 1.55; }
+
+  /* Lifecycle timeline */
+  .timeline { display: flex; gap: 0; margin-bottom: 2rem; }
+  .tl-step { flex: 1; position: relative; padding: 1rem 1.25rem; background: var(--surface); border: 1px solid var(--border); }
+  .tl-step:first-child { border-radius: 12px 0 0 12px; }
+  .tl-step:last-child { border-radius: 0 12px 12px 0; }
+  .tl-step:not(:last-child) { border-right: none; }
+  .tl-num { font-size: 0.625rem; font-weight: 700; color: var(--blue-primary); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 0.25rem; }
+  .tl-title { font-size: 0.875rem; font-weight: 600; margin-bottom: 0.375rem; }
+  .tl-desc { font-size: 0.6875rem; color: var(--muted); line-height: 1.5; }
+
+  /* Token explainer */
+  .token-box { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 2rem; margin-bottom: 2rem; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+  .token-box h3 { font-size: 1rem; font-weight: 600; margin-bottom: 0.75rem; }
+  .token-box p { font-size: 0.8125rem; color: var(--muted); line-height: 1.55; margin-bottom: 0.75rem; }
+  .token-example { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 1rem; }
+  .te-row { display: flex; justify-content: space-between; font-size: 0.8125rem; padding: 0.25rem 0; }
+  .te-row .k { color: var(--muted); }
+  .te-row .v { font-weight: 500; }
+
+  /* ════════════════════════════════════════════
+     DETAIL PAGES
+     ════════════════════════════════════════════ */
+  .back { display: inline-flex; align-items: center; gap: 4px; font-size: 0.8125rem; color: var(--muted); margin-bottom: 1.5rem; cursor: pointer; }
+  .back:hover { color: var(--text); }
+
+  .dh { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem; }
+  .dh-left h1 { font-size: 1.625rem; font-weight: 700; display: flex; align-items: center; gap: 0.75rem; line-height: 1.3; }
+  .dh-left .sub { color: var(--muted); font-size: 0.8125rem; margin-top: 0.25rem; }
+  .dh-right { text-align: right; }
+  .dh-yield { font-size: 2.25rem; font-weight: 800; color: var(--blue-primary); line-height: 1; }
+  .dh-yield-label { font-size: 0.6875rem; color: var(--muted); margin-top: 0.25rem; text-transform: uppercase; letter-spacing: 0.04em; }
+
+  .explainer { background: rgba(26,90,184,0.06); border: 1px solid rgba(26,90,184,0.15); border-radius: 10px; padding: 1rem 1.25rem; margin-bottom: 1.5rem; display: flex; gap: 0.75rem; align-items: flex-start; }
+  .explainer .ico { font-size: 1.125rem; flex-shrink: 0; line-height: 1.4; }
+  .explainer p { font-size: 0.8125rem; line-height: 1.55; color: #334155; }
+  .explainer strong { color: var(--blue-primary); }
+
+  .sstrip { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.75rem; margin-bottom: 1.5rem; }
+  .ss { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 0.875rem 1rem; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+  .ss .sl { font-size: 0.625rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; }
+  .ss .sv { font-size: 1.125rem; font-weight: 700; margin-top: 0.125rem; }
+
+  .two { display: grid; grid-template-columns: 1fr 360px; gap: 1.25rem; }
+
+  /* Stepper */
+  .stepper { display: flex; gap: 0; margin-bottom: 1.5rem; }
+  .stp { flex: 1; text-align: center; padding-bottom: 0.625rem; position: relative; }
+  .stp::after { content: ''; position: absolute; bottom: 0; left: 4px; right: 4px; height: 3px; background: var(--secondary); border-radius: 2px; }
+  .stp.done::after, .stp.now::after { background: var(--blue-primary); }
+  .stp .stl { font-size: 0.625rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); }
+  .stp.now .stl { color: var(--blue-primary); font-weight: 700; }
+  .stp.done .stl { color: rgba(26,90,184,0.5); }
+
+  /* Risk tiers */
+  .rtier { display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 0.875rem; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; margin-bottom: 0.5rem; }
+  .rdot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .rtier .ri { flex: 1; }
+  .rtier .rn { font-size: 0.8125rem; font-weight: 500; }
+  .rtier .rt { font-size: 0.625rem; color: var(--muted); }
+  .rtier .rs { font-size: 0.875rem; font-weight: 700; }
+
+  /* Order book */
+  .ob-mid { display: flex; align-items: center; justify-content: center; gap: 0.75rem; padding: 0.5rem; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; margin-bottom: 1rem; }
+  .ob-mid .price { font-size: 1.25rem; font-weight: 700; }
+  .ob-mid .lbl { font-size: 0.6875rem; color: var(--muted); }
+  .ob-sides { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+  .ob-side h4 { font-size: 0.625rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 0.5rem; }
+  .ob-lv { display: flex; justify-content: space-between; padding: 0.3rem 0.5rem; font-size: 0.8125rem; border-radius: 4px; position: relative; margin-bottom: 1px; }
+  .ob-lv .bg { position: absolute; inset: 0; border-radius: 4px; opacity: 0.1; }
+  .ob-lv span { position: relative; }
+  .ask { color: #dc2626; font-weight: 500; }
+  .bid { color: #16a34a; font-weight: 500; }
+
+  /* Trade toggle */
+  .ttog { display: flex; background: var(--secondary); border-radius: 8px; padding: 3px; margin-bottom: 1rem; }
+  .ttog button { flex: 1; padding: 0.5rem; border-radius: 6px; text-align: center; font-size: 0.8125rem; font-weight: 600; cursor: pointer; border: none; background: transparent; color: var(--muted); }
+  .ttog .buy-on { background: rgba(22,163,74,0.12); color: #16a34a; }
+
+  /* Portfolio */
+  .psum { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-bottom: 2rem; }
+  .psc { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1.25rem; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+  .psc .l { font-size: 0.625rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; }
+  .psc .v { font-size: 1.5rem; font-weight: 700; margin-top: 0.25rem; }
+  table { width: 100%; border-collapse: collapse; font-size: 0.8125rem; }
+  th { text-align: left; padding: 0.6rem 1rem; color: var(--muted); font-weight: 500; font-size: 0.625rem; text-transform: uppercase; letter-spacing: 0.06em; background: var(--bg); }
+  th:not(:first-child) { text-align: right; }
+  td { padding: 0.875rem 1rem; border-top: 1px solid var(--border); }
+  td:not(:first-child) { text-align: right; }
+  .claim-btn { background: var(--accent-dim); color: var(--blue-primary); border: none; padding: 5px 12px; border-radius: 6px; font-size: 0.6875rem; font-weight: 700; cursor: pointer; }
+  .claim-btn:hover { background: rgba(26,90,184,0.15); }
+
+  /* Risk holder section */
+  .rh-section { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+  .rh-head { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1rem; }
+  .rh-logo { width: 48px; height: 48px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.25rem; font-weight: 700; }
+  .rh-name { font-size: 1rem; font-weight: 600; }
+  .rh-type { font-size: 0.6875rem; color: var(--muted); margin-top: 2px; }
+  .rh-desc { font-size: 0.8125rem; color: var(--muted); line-height: 1.55; margin-bottom: 1rem; }
+  .rh-tags { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+  .rh-tag { font-size: 0.625rem; padding: 3px 10px; border-radius: 6px; background: var(--secondary); color: var(--muted); font-weight: 500; }
+
+  @media (max-width: 768px) {
+    .sstrip { grid-template-columns: 1fr 1fr; }
+    .two { grid-template-columns: 1fr; }
+    .mgrid { grid-template-columns: 1fr; }
+    .concepts { grid-template-columns: 1fr; }
+    .timeline { flex-direction: column; }
+    .tl-step { border-radius: 8px !important; border: 1px solid var(--border) !important; margin-bottom: 0.5rem; }
+    .token-box { grid-template-columns: 1fr; }
+    .psum { grid-template-columns: 1fr; }
+    .hero h1 { font-size: 1.75rem; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-inner">
+    <div class="nav-left">
+      <div class="logo">RIZK<sub>testnet</sub></div>
+      <div class="nav-links">
+        <a class="nl on" onclick="go('markets',this)">Markets</a>
+        <a class="nl" onclick="go('hiw',this)">How It Works</a>
+        <a class="nl" onclick="go('portfolio',this)">Portfolio</a>
+      </div>
+    </div>
+    <button class="cbtn">Connect Wallet</button>
+  </div>
+</nav>
+
+<!-- ═══════════════════════════════════════════
+     MARKETS
+     ═══════════════════════════════════════════ -->
+<main id="p-markets">
+  <div class="hero">
+    <h1>Invest in <em>catastrophe bonds</em>.<br>Protect communities. Earn yield.</h1>
+    <p>RIZK is an on-chain protection market where investors fund catastrophe bonds and earn premium yield from risk holders — with full transparency, liquid tokens, and parametric settlement.</p>
+    <div class="hero-btns">
+      <button class="btn btn-accent" onclick="go('hiw')">How It Works</button>
+      <button class="btn btn-ghost" onclick="document.querySelector('.market-section').scrollIntoView({behavior:'smooth'})">Browse Markets</button>
+    </div>
+  </div>
+
+  <div class="market-section">
+    <div class="section-head">
+      <h2>Accepting Investment</h2>
+      <span class="sub">Commit capital to fund these protection markets</span>
+    </div>
+
+    <div class="mgrid">
+      <!-- Hurricane Jamaica - OPEN -->
+      <div class="mc" onclick="go('commit')">
+        <div class="mc-body">
+          <div class="mc-r1">
+            <div class="mc-peril"><span class="mc-icon">🌀</span><div><div class="mc-name">Hurricane Protection</div><div class="mc-region">Jamaica • Caribbean</div></div></div>
+            <span class="badge b-open">Open</span>
+          </div>
+          <div class="mc-desc">Parametric named storm coverage for the Government of Jamaica via IBRD CAR program. Extension of the World Bank's existing $150M catbond structure.</div>
+          <div class="mc-stats">
+            <div class="mc-s"><div class="sl">Coverage</div><div class="sv">$1,000,000</div></div>
+            <div class="mc-s"><div class="sl">Premium Rate</div><div class="sv acc">10% APY</div></div>
+            <div class="mc-s"><div class="sl">Duration</div><div class="sv">12 months</div></div>
+            <div class="mc-s"><div class="sl">Closes In</div><div class="sv">6d 14h</div></div>
+          </div>
+          <div class="mc-prog">
+            <div class="mc-prog-head"><span>$350,000 committed</span><span class="pct">35%</span></div>
+            <div class="prog"><div class="fill" style="width:35%"></div></div>
+          </div>
+        </div>
+        <div class="mc-foot"><span class="cta">View & Commit →</span><span class="meta">12 holders • 30% min fill</span></div>
+      </div>
+
+      <!-- SEADRIF Flood SE Asia - OPEN -->
+      <div class="mc" onclick="go('commit-seadrif')">
+        <div class="mc-body">
+          <div class="mc-r1">
+            <div class="mc-peril"><span class="mc-icon">🌊</span><div><div class="mc-name">Flood Protection</div><div class="mc-region">Southeast Asia • ASEAN</div></div></div>
+            <span class="badge b-open">Open</span>
+          </div>
+          <div class="mc-desc">Parametric flood coverage for ASEAN nations via the SEADRIF regional risk pool. Triggered by water level measurements at monitoring stations across Lao PDR, Myanmar, and Cambodia.</div>
+          <div class="mc-stats">
+            <div class="mc-s"><div class="sl">Coverage</div><div class="sv">$3,000,000</div></div>
+            <div class="mc-s"><div class="sl">Premium Rate</div><div class="sv acc">9% APY</div></div>
+            <div class="mc-s"><div class="sl">Duration</div><div class="sv">18 months</div></div>
+            <div class="mc-s"><div class="sl">Closes In</div><div class="sv">12d 8h</div></div>
+          </div>
+          <div class="mc-prog">
+            <div class="mc-prog-head"><span>$720,000 committed</span><span class="pct">24%</span></div>
+            <div class="prog"><div class="fill" style="width:24%"></div></div>
+          </div>
+        </div>
+        <div class="mc-foot"><span class="cta">View & Commit →</span><span class="meta">8 holders • 25% min fill</span></div>
+      </div>
+
+      <!-- Kizuna III / Tokio Marine - OPEN -->
+      <div class="mc" onclick="go('commit-kizuna')">
+        <div class="mc-body">
+          <div class="mc-r1">
+            <div class="mc-peril"><span class="mc-icon">🏔️</span><div><div class="mc-name">Earthquake Protection</div><div class="mc-region">Japan • Kizuna Re III</div></div></div>
+            <span class="badge b-open">Open</span>
+          </div>
+          <div class="mc-desc">Indemnity earthquake coverage for Tokio Marine & Nichido Fire Insurance. Modeled on the Kizuna Re III structure covering Japanese earthquake losses including shake, tsunami, and fire.</div>
+          <div class="mc-stats">
+            <div class="mc-s"><div class="sl">Coverage</div><div class="sv">$8,000,000</div></div>
+            <div class="mc-s"><div class="sl">Premium Rate</div><div class="sv acc">6.5% APY</div></div>
+            <div class="mc-s"><div class="sl">Duration</div><div class="sv">60 months</div></div>
+            <div class="mc-s"><div class="sl">Closes In</div><div class="sv">21d 6h</div></div>
+          </div>
+          <div class="mc-prog">
+            <div class="mc-prog-head"><span>$2,400,000 committed</span><span class="pct">30%</span></div>
+            <div class="prog"><div class="fill" style="width:30%"></div></div>
+          </div>
+        </div>
+        <div class="mc-foot"><span class="cta">View & Commit →</span><span class="meta">19 holders • 25% min fill</span></div>
+      </div>
+    </div>
+
+    <div class="section-head" style="margin-top:2.5rem">
+      <h2>Live Markets</h2>
+      <span class="sub">Coverage active — trade catbond tokens on the order book</span>
+    </div>
+
+    <div class="mgrid">
+      <!-- Cyber Risk / Beazley - LIVE -->
+      <div class="mc" onclick="go('active-cyber')">
+        <div class="mc-body">
+          <div class="mc-r1">
+            <div class="mc-peril"><span class="mc-icon">🛡️</span><div><div class="mc-name">Cyber Catastrophe</div><div class="mc-region">Global • Multi-sector</div></div></div>
+            <span class="badge b-live">Live</span>
+          </div>
+          <div class="mc-desc">Industry loss coverage for systemic cyber catastrophe events. Modeled on Beazley's PoleStar structure, triggered by aggregate industry cyber losses exceeding attachment thresholds.</div>
+          <div class="mc-stats">
+            <div class="mc-s"><div class="sl">Coverage</div><div class="sv">$5,000,000</div></div>
+            <div class="mc-s"><div class="sl">Premium Rate</div><div class="sv acc">14% APY</div></div>
+            <div class="mc-s"><div class="sl">Token Price</div><div class="sv">$0.94</div></div>
+            <div class="mc-s"><div class="sl">Expires</div><div class="sv">Feb 2028</div></div>
+          </div>
+          <div class="mc-prog">
+            <div class="mc-prog-head"><span>$4.75M locked</span><span class="pct">95%</span></div>
+            <div class="prog"><div class="fill" style="width:95%"></div></div>
+          </div>
+        </div>
+        <div class="mc-foot"><span class="cta">Trade Tokens →</span><span class="meta">87 holders • 31 trades today</span></div>
+      </div>
+
+      <!-- Earthquake Mexico - LIVE -->
+      <div class="mc" onclick="go('active')">
+        <div class="mc-body">
+          <div class="mc-r1">
+            <div class="mc-peril"><span class="mc-icon">🌋</span><div><div class="mc-name">Earthquake Protection</div><div class="mc-region">Central Mexico</div></div></div>
+            <span class="badge b-live">Live</span>
+          </div>
+          <div class="mc-desc">Seismic event coverage for the Mexican government via IBRD CAR program. Capital is locked, catbond tokens are actively trading on the order book.</div>
+          <div class="mc-stats">
+            <div class="mc-s"><div class="sl">Coverage</div><div class="sv">$5,000,000</div></div>
+            <div class="mc-s"><div class="sl">Premium Rate</div><div class="sv acc">12% APY</div></div>
+            <div class="mc-s"><div class="sl">Token Price</div><div class="sv">$0.96</div></div>
+            <div class="mc-s"><div class="sl">Expires</div><div class="sv">Jun 2027</div></div>
+          </div>
+          <div class="mc-prog">
+            <div class="mc-prog-head"><span>$3.9M locked</span><span class="pct">78.5%</span></div>
+            <div class="prog"><div class="fill" style="width:78.5%"></div></div>
+          </div>
+        </div>
+        <div class="mc-foot"><span class="cta">Trade Tokens →</span><span class="meta">134 holders • 47 trades today</span></div>
+      </div>
+
+      <!-- Terrorism / Baltic PCC / Pool Re - LIVE -->
+      <div class="mc" onclick="go('active-terror')">
+        <div class="mc-body">
+          <div class="mc-r1">
+            <div class="mc-peril"><span class="mc-icon">🏛️</span><div><div class="mc-name">Terrorism Protection</div><div class="mc-region">United Kingdom</div></div></div>
+            <span class="badge b-live">Live</span>
+          </div>
+          <div class="mc-desc">Retrocessional terrorism coverage modeled on Pool Re's Baltic PCC structure. Provides UK government-backed mutual reinsurance against qualifying terrorism events on UK soil.</div>
+          <div class="mc-stats">
+            <div class="mc-s"><div class="sl">Coverage</div><div class="sv">$6,000,000</div></div>
+            <div class="mc-s"><div class="sl">Premium Rate</div><div class="sv acc">5% APY</div></div>
+            <div class="mc-s"><div class="sl">Token Price</div><div class="sv">$0.99</div></div>
+            <div class="mc-s"><div class="sl">Expires</div><div class="sv">Apr 2028</div></div>
+          </div>
+          <div class="mc-prog">
+            <div class="mc-prog-head"><span>$5.7M locked</span><span class="pct">95%</span></div>
+            <div class="prog"><div class="fill" style="width:95%"></div></div>
+          </div>
+        </div>
+        <div class="mc-foot"><span class="cta">Trade Tokens →</span><span class="meta">52 holders • 8 trades today</span></div>
+      </div>
+    </div>
+
+    <!-- Settled Markets -->
+    <div class="section-head" style="margin-top:2.5rem">
+      <h2>Settled Markets</h2>
+      <span class="sub">Coverage period ended — redeem tokens</span>
+    </div>
+
+    <div class="mgrid">
+      <!-- Flood Bangladesh - MATURED -->
+      <div class="mc" onclick="go('matured')">
+        <div class="mc-body">
+          <div class="mc-r1">
+            <div class="mc-peril"><span class="mc-icon">🌊</span><div><div class="mc-name">Flood Protection</div><div class="mc-region">Bangladesh Delta</div></div></div>
+            <span class="badge b-done">Matured</span>
+          </div>
+          <div class="mc-desc">Coverage period ended without a triggering event. Full principal returned to all token holders plus premium.</div>
+          <div class="mc-stats">
+            <div class="mc-s"><div class="sl">Coverage</div><div class="sv">$2,500,000</div></div>
+            <div class="mc-s"><div class="sl">Premium Rate</div><div class="sv acc">8% APY</div></div>
+            <div class="mc-s"><div class="sl">Redemption Rate</div><div class="sv">$1.00 / token</div></div>
+            <div class="mc-s"><div class="sl">Ended</div><div class="sv">Feb 2026</div></div>
+          </div>
+        </div>
+        <div class="mc-foot"><span class="cta">Redeem →</span><span class="meta">45 holders • Full principal returned</span></div>
+      </div>
+
+      <!-- Pandemic / IBRD PEF - TRIGGERED -->
+      <div class="mc" onclick="go('matured-pandemic')">
+        <div class="mc-body">
+          <div class="mc-r1">
+            <div class="mc-peril"><span class="mc-icon">🦠</span><div><div class="mc-name">Pandemic Protection</div><div class="mc-region">Global • IBRD PEF</div></div></div>
+            <span class="badge b-trig">Triggered</span>
+          </div>
+          <div class="mc-desc">Parametric pandemic coverage modeled on the World Bank's PEF structure. Triggered by pathogen outbreak parameters — confirmed cases, death toll, and cross-border spread rate.</div>
+          <div class="mc-stats">
+            <div class="mc-s"><div class="sl">Coverage</div><div class="sv">$4,000,000</div></div>
+            <div class="mc-s"><div class="sl">Premium Rate</div><div class="sv acc">11% APY</div></div>
+            <div class="mc-s"><div class="sl">Redemption Rate</div><div class="sv" style="color:#dc2626">$0.42 / token</div></div>
+            <div class="mc-s"><div class="sl">Ended</div><div class="sv">Jan 2026</div></div>
+          </div>
+        </div>
+        <div class="mc-foot"><span class="cta">Redeem →</span><span class="meta">201 holders • 58% paid to risk holder</span></div>
+      </div>
+
+      <!-- Lottery Jackpot / Hoplon - MATURED -->
+      <div class="mc" onclick="go('matured-lottery')">
+        <div class="mc-body">
+          <div class="mc-r1">
+            <div class="mc-peril"><span class="mc-icon">🎰</span><div><div class="mc-name">Lottery Jackpot</div><div class="mc-region">Europe • Multi-game</div></div></div>
+            <span class="badge b-done">Matured</span>
+          </div>
+          <div class="mc-desc">Jackpot payout coverage modeled on the Hoplon II structure. Covers qualifying lottery jackpot winnings and tax shortfalls across European lottery games on an ultimate net loss basis.</div>
+          <div class="mc-stats">
+            <div class="mc-s"><div class="sl">Coverage</div><div class="sv">$2,000,000</div></div>
+            <div class="mc-s"><div class="sl">Premium Rate</div><div class="sv acc">7% APY</div></div>
+            <div class="mc-s"><div class="sl">Redemption Rate</div><div class="sv">$1.00 / token</div></div>
+            <div class="mc-s"><div class="sl">Ended</div><div class="sv">Dec 2025</div></div>
+          </div>
+        </div>
+        <div class="mc-foot"><span class="cta">Redeem →</span><span class="meta">28 holders • Full principal returned</span></div>
+      </div>
+
+    </div>
+  </div>
+</main>
+
+<!-- ═══════════════════════════════════════════
+     HOW IT WORKS
+     ═══════════════════════════════════════════ -->
+<main id="p-hiw" class="hidden">
+  <div class="hiw-hero">
+    <h1>How RIZK Works</h1>
+    <p>An on-chain catastrophe bond market that connects investors with natural disaster risk</p>
+  </div>
+
+  <!-- What is a catbond? -->
+  <div class="hiw-section">
+    <h2>What is a Catastrophe Bond?</h2>
+    <p>A catastrophe bond (catbond) is a financial instrument where investors provide capital to cover potential losses from natural disasters. In return, the entity seeking protection (the "risk holder") pays investors a premium — typically much higher than traditional bond yields — for the duration of the coverage period.</p>
+    <div class="concepts">
+      <div class="concept">
+        <div class="icon">🏛️</div>
+        <h3>Risk Holder</h3>
+        <p>A government fund, insurer, or organization that needs protection against catastrophe losses. They pay a quarterly premium to investors in exchange for coverage. Think of them as buying an insurance policy, funded by the bond market.</p>
+      </div>
+      <div class="concept">
+        <div class="icon">💰</div>
+        <h3>Investor</h3>
+        <p>You. You commit capital to the protection pool and receive catbond tokens representing your position. You earn premium yield throughout the coverage period. If no disaster occurs, you get your full capital back at maturity.</p>
+      </div>
+      <div class="concept">
+        <div class="icon">📊</div>
+        <h3>Parametric Trigger</h3>
+        <p>Payouts are triggered by objective, measurable parameters — like wind speed for hurricanes or magnitude for earthquakes — not by estimated losses. This means faster, transparent, dispute-free settlement.</p>
+      </div>
+      <div class="concept">
+        <div class="icon">🪙</div>
+        <h3>Catbond Tokens</h3>
+        <p>Your position is represented as tradable ERC-20 tokens. You can hold them to earn yield, or sell them on the built-in order book if you want to exit early. Other investors can buy in after the initial commitment phase.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Flow diagram -->
+  <div class="hiw-section">
+    <h2>The Flow of Capital</h2>
+    <p>Here's how money moves through a RIZK protection market, from creation to settlement.</p>
+    <div class="diagram">
+      <div class="flow">
+        <div class="flow-node">
+          <div class="flow-circle" style="background:rgba(26,90,184,0.1)">🏛️</div>
+          <div class="flow-label">Risk Holder</div>
+          <div class="flow-desc">Creates market, deposits premium escrow</div>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-node">
+          <div class="flow-circle" style="background:rgba(26,90,184,0.1)">🔒</div>
+          <div class="flow-label">Protection Pool</div>
+          <div class="flow-desc">Capital locked in on-chain vault for coverage period</div>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-node">
+          <div class="flow-circle" style="background:rgba(22,163,74,0.1)">💰</div>
+          <div class="flow-label">Investors</div>
+          <div class="flow-desc">Commit capital, receive catbond tokens + premium yield</div>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-node">
+          <div class="flow-circle" style="background:rgba(217,119,6,0.1)">📈</div>
+          <div class="flow-label">Secondary Market</div>
+          <div class="flow-desc">Tokens trade on order book, new investors can buy in</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Market lifecycle -->
+  <div class="hiw-section">
+    <h2>Market Lifecycle</h2>
+    <p>Every protection market goes through four phases. Understanding these helps you know exactly where your capital is and what happens next.</p>
+    <div class="timeline">
+      <div class="tl-step">
+        <div class="tl-num">Phase 1</div>
+        <div class="tl-title">Commitment</div>
+        <div class="tl-desc">Investors pledge capital and post a 1% bond as a deposit guarantee. This ensures committed investors follow through.</div>
+      </div>
+      <div class="tl-step">
+        <div class="tl-num">Phase 2</div>
+        <div class="tl-title">Deposit Day</div>
+        <div class="tl-desc">Committed investors deposit their full amount within 24 hours. Priority round first, then open to anyone. Bonds refunded on deposit.</div>
+      </div>
+      <div class="tl-step">
+        <div class="tl-num">Phase 3</div>
+        <div class="tl-title">Active Coverage</div>
+        <div class="tl-desc">Capital is locked. Risk holder pays quarterly premium to token holders. Tokens trade freely on the order book. Oracle monitors for trigger events.</div>
+      </div>
+      <div class="tl-step">
+        <div class="tl-num">Phase 4</div>
+        <div class="tl-title">Settlement</div>
+        <div class="tl-desc">If no event: full principal + premium returned. If triggered: a portion pays out to the risk holder based on the severity tier. Remaining capital returned.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Token trading -->
+  <div class="hiw-section">
+    <h2>Trading Catbond Tokens</h2>
+    <p>Once a market is active, your position is fully liquid. Here's how the token economics work.</p>
+    <div class="token-box">
+      <div>
+        <h3>Why Would Someone Buy a Token?</h3>
+        <p>Catbond tokens represent a claim on the underlying capital plus future premium payments. If you buy a token at $0.95 and no disaster occurs, it redeems at $1.00 at maturity — that's a 5.26% return, plus any premium yield earned while holding.</p>
+        <p>Token prices fluctuate based on perceived risk. During hurricane season, prices might dip (higher perceived risk = higher potential returns for buyers). After the season passes, prices recover toward $1.00.</p>
+      </div>
+      <div>
+        <h3>Example Trade</h3>
+        <div class="token-example">
+          <div class="te-row"><span class="k">Buy price</span><span class="v">$0.95</span></div>
+          <div class="te-row"><span class="k">Tokens purchased</span><span class="v">100,000</span></div>
+          <div class="te-row"><span class="k">Cost</span><span class="v">$95,000</span></div>
+          <hr class="divider">
+          <div class="te-row"><span class="k">Redemption at maturity</span><span class="v">$100,000</span></div>
+          <div class="te-row"><span class="k">Premium earned (est.)</span><span class="v" style="color:var(--blue-primary)">$6,000</span></div>
+          <div class="te-row"><span class="k" style="font-weight:600;color:var(--text)">Total return</span><span class="v" style="font-weight:700;color:var(--blue-primary)">$11,000 (11.6%)</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Risk section -->
+  <div class="hiw-section">
+    <h2>Understanding the Risk</h2>
+    <p>Catastrophe bonds carry real risk. If a qualifying event occurs, investors lose a portion of their capital based on the severity tier defined in the coverage agreement. This is the tradeoff for the high premium yield.</p>
+    <div class="concepts" style="grid-template-columns: repeat(3, 1fr)">
+      <div class="concept">
+        <div class="icon">🟡</div>
+        <h3>Low Severity</h3>
+        <p>Minor events trigger a partial payout. For hurricanes, a Category 1 might slash 25% of the pool. You'd get back $0.75 per token.</p>
+      </div>
+      <div class="concept">
+        <div class="icon">🟠</div>
+        <h3>Medium Severity</h3>
+        <p>Moderate events trigger larger payouts. A Category 3 hurricane might slash 50%. You'd get back $0.50 per token.</p>
+      </div>
+      <div class="concept">
+        <div class="icon">🔴</div>
+        <h3>Maximum Severity</h3>
+        <p>Extreme events can trigger 100% payout. A Category 5 hurricane would mean total loss of capital. Tokens redeem at $0.00.</p>
+      </div>
+    </div>
+  </div>
+
+  <div style="text-align:center;padding:1rem 0 2rem">
+    <button class="btn btn-accent" onclick="go('markets')">Browse Markets →</button>
+  </div>
+</main>
+
+<!-- ═══════════════════════════════════════════
+     DETAIL: COMMITMENT
+     ═══════════════════════════════════════════ -->
+<main id="p-commit" class="hidden">
+  <div class="back" onclick="go('markets')">← Markets</div>
+  <div class="dh">
+    <div class="dh-left">
+      <h1>🌀 Hurricane Protection <span class="badge b-open">Open</span></h1>
+      <div class="sub">Jamaica • Caribbean • 12-month coverage</div>
+      <div style="font-size:0.6875rem;color:var(--muted);margin-top:0.5rem">👥 12 investors</div>
+    </div>
+    <div class="dh-right"><div class="dh-yield">10%</div><div class="dh-yield-label">Annual Premium Yield</div></div>
+  </div>
+
+  <div class="explainer">
+    <div class="ico">💡</div>
+    <p>You're funding a catastrophe bond. Your capital provides hurricane protection for Jamaica. If no qualifying hurricane occurs in 12 months, you get your full capital back plus 10% premium. If one does, a portion pays out to the Jamaica Catastrophe Fund based on storm severity.</p>
+  </div>
+
+  <div class="rh-section">
+    <div class="rh-head">
+      <div class="rh-logo" style="background:rgba(26,90,184,0.1);color:var(--blue-primary)">🇯🇲</div>
+      <div>
+        <div class="rh-name">Government of Jamaica</div>
+        <div class="rh-type">Sovereign Nation • via IBRD CAR Program</div>
+      </div>
+    </div>
+    <div class="rh-desc">The Government of Jamaica is seeking parametric hurricane protection through this on-chain extension of the World Bank's IBRD Capital-At-Risk notes program. Jamaica secured $150M in traditional catbond coverage through IBRD CAR Jamaica 2024, and this market serves as an add-on tranche providing additional named storm protection for the Jamaica Catastrophe Fund across four hurricane seasons.</div>
+    <div class="rh-tags">
+      <span class="rh-tag">Sovereign Risk</span>
+      <span class="rh-tag">IBRD CAR Program</span>
+      <span class="rh-tag">Parametric Trigger</span>
+      <span class="rh-tag">Atlantic Named Storms</span>
+    </div>
+  </div>
+
+  <div class="sstrip">
+    <div class="ss"><div class="sl">Coverage Target</div><div class="sv">$1,000,000</div></div>
+    <div class="ss"><div class="sl">Committed So Far</div><div class="sv">$350,000</div></div>
+    <div class="ss"><div class="sl">Closes In</div><div class="sv">6d 14h</div></div>
+    <div class="ss"><div class="sl">Min Fill Required</div><div class="sv">30%</div></div>
+  </div>
+
+  <div class="two">
+    <div>
+      <div class="panel" style="margin-bottom:1.25rem">
+        <div class="ph"><h3>Market Progress</h3></div>
+        <div class="pb">
+          <div class="stepper">
+            <div class="stp now"><div class="stl">1. Commitment</div></div>
+            <div class="stp"><div class="stl">2. Deposit Day</div></div>
+            <div class="stp"><div class="stl">3. Active</div></div>
+            <div class="stp"><div class="stl">4. Settlement</div></div>
+          </div>
+          <div style="margin-bottom:1.5rem">
+            <div style="font-size:2rem;font-weight:800">$350,000</div>
+            <div style="font-size:0.8125rem;color:var(--muted);margin-bottom:0.75rem">of $1,000,000 target</div>
+            <div class="prog" style="height:8px;margin-bottom:0.25rem"><div class="fill" style="width:35%"></div></div>
+            <div style="display:flex;justify-content:space-between;font-size:0.6875rem;color:var(--muted)"><span>35% filled</span><span style="color:var(--blue-primary)">✓ Min 30% met</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="ph"><h3>Risk Tiers</h3><span style="font-size:0.6875rem;color:var(--muted)">What could reduce your capital</span></div>
+        <div class="pb">
+          <div class="rtier"><div class="rdot" style="background:#d97706"></div><div class="ri"><div class="rn">Category 1 Hurricane</div><div class="rt">Sustained winds ≥ 119 km/h</div></div><div class="rs" style="color:#d97706">-25%</div></div>
+          <div class="rtier"><div class="rdot" style="background:#ea580c"></div><div class="ri"><div class="rn">Category 3 Hurricane</div><div class="rt">Sustained winds ≥ 178 km/h</div></div><div class="rs" style="color:#ea580c">-50%</div></div>
+          <div class="rtier"><div class="rdot" style="background:#dc2626"></div><div class="ri"><div class="rn">Category 5 Hurricane</div><div class="rt">Sustained winds ≥ 252 km/h</div></div><div class="rs" style="color:#dc2626">-100%</div></div>
+          <p style="font-size:0.6875rem;color:var(--muted);margin-top:0.75rem;line-height:1.5">Triggered by objective wind speed measurements from the oracle. Below Category 1, no payout occurs and your capital is fully safe.</p>
+        </div>
+      </div>
+
+    </div>
+
+    <div>
+      <div class="panel">
+        <div class="ph"><h3>Commit Capital</h3></div>
+        <div class="pb">
+          <div class="field">
+            <div class="field-label"><span class="l">Amount</span><span class="r">Balance: $500,000</span></div>
+            <div class="input-box"><input type="number" value="100000"><button class="max">MAX</button></div>
+          </div>
+          <div class="info-box">
+            <div class="ir"><span class="k">Your commitment</span><span class="v">$100,000</span></div>
+            <div class="ir"><span class="k">Deposit guarantee (1%)</span><span class="v w">$1,000</span></div>
+            <div class="ir"><span class="k">Remaining due on Deposit Day</span><span class="v">$99,000</span></div>
+            <hr class="divider">
+            <div class="ir"><span class="k">Est. annual premium earned</span><span class="v g">$10,000</span></div>
+            <div class="ir"><span class="k">Est. quarterly payout</span><span class="v g">$2,500</span></div>
+          </div>
+          <button class="btn btn-accent btn-block">Commit $100,000</button>
+          <p style="font-size:0.625rem;color:var(--muted);margin-top:0.75rem;line-height:1.5;text-align:center">Your 1% deposit guarantee is returned when you complete your deposit on Deposit Day. If you don't deposit, the guarantee is forfeited.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Premium Timeline -->
+  <div style="margin-top:2rem">
+    <h3 style="font-size:1rem;font-weight:700;margin-bottom:1rem">Premium Schedule</h3>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.5rem">
+      <div class="panel"><div class="pb" style="text-align:center">
+        <div style="font-size:0.625rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em">Advance Deposit</div>
+        <div style="font-size:1.5rem;font-weight:800;color:#16a34a;margin:0.25rem 0">✓ Paid</div>
+        <div style="font-size:1.125rem;font-weight:700">$100,000</div>
+        <div style="font-size:0.6875rem;color:var(--muted);margin-top:0.25rem">Covers first 4 quarters</div>
+      </div></div>
+      <div class="panel"><div class="pb" style="text-align:center">
+        <div style="font-size:0.625rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em">Payment Terms</div>
+        <div style="font-size:1.125rem;font-weight:700;margin:0.5rem 0">$25,000 / quarter</div>
+        <div style="font-size:0.6875rem;color:var(--muted)">10% APY on $1,000,000 coverage</div>
+      </div></div>
+    </div>
+    <div style="display:flex;gap:0;position:relative">
+      <div style="position:absolute;top:14px;left:40px;right:40px;height:3px;background:var(--secondary);border-radius:2px"></div>
+      <div style="flex:1;text-align:center;position:relative;z-index:1">
+        <div style="width:28px;height:28px;border-radius:50%;background:var(--blue-primary);color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:0.6875rem;font-weight:700">Q1</div>
+        <div style="font-size:0.6875rem;font-weight:600;margin-top:0.375rem">$25,000</div>
+        <div style="font-size:0.5625rem;color:var(--muted)">Jul 2026</div>
+      </div>
+      <div style="flex:1;text-align:center;position:relative;z-index:1">
+        <div style="width:28px;height:28px;border-radius:50%;background:var(--secondary);color:var(--muted);display:inline-flex;align-items:center;justify-content:center;font-size:0.6875rem;font-weight:700">Q2</div>
+        <div style="font-size:0.6875rem;font-weight:600;margin-top:0.375rem">$25,000</div>
+        <div style="font-size:0.5625rem;color:var(--muted)">Oct 2026</div>
+      </div>
+      <div style="flex:1;text-align:center;position:relative;z-index:1">
+        <div style="width:28px;height:28px;border-radius:50%;background:var(--secondary);color:var(--muted);display:inline-flex;align-items:center;justify-content:center;font-size:0.6875rem;font-weight:700">Q3</div>
+        <div style="font-size:0.6875rem;font-weight:600;margin-top:0.375rem">$25,000</div>
+        <div style="font-size:0.5625rem;color:var(--muted)">Jan 2027</div>
+      </div>
+      <div style="flex:1;text-align:center;position:relative;z-index:1">
+        <div style="width:28px;height:28px;border-radius:50%;background:var(--secondary);color:var(--muted);display:inline-flex;align-items:center;justify-content:center;font-size:0.6875rem;font-weight:700">Q4</div>
+        <div style="font-size:0.6875rem;font-weight:600;margin-top:0.375rem">$25,000</div>
+        <div style="font-size:0.5625rem;color:var(--muted)">Apr 2027</div>
+      </div>
+    </div>
+    <p style="font-size:0.6875rem;color:var(--muted);margin-top:1rem;line-height:1.5;text-align:center">Premium is escrowed upfront and distributed to token holders pro-rata each quarter. If the risk holder fails to pay, the market enters early exit.</p>
+  </div>
+</main>
+
+<!-- ═══════════════════════════════════════════
+     DETAIL: ACTIVE TRADING
+     ═══════════════════════════════════════════ -->
+<main id="p-active" class="hidden">
+  <div class="back" onclick="go('markets')">← Markets</div>
+  <div class="dh">
+    <div class="dh-left">
+      <h1>🌋 Earthquake Protection <span class="badge b-live">Live</span></h1>
+      <div class="sub">Central Mexico • Expires Jun 2027</div>
+      <div style="font-size:0.6875rem;color:var(--muted);margin-top:0.5rem">👥 134 investors</div>
+    </div>
+    <div class="dh-right"><div class="dh-yield">12%</div><div class="dh-yield-label">Annual Premium Yield</div></div>
+  </div>
+
+  <div class="explainer">
+    <div class="ico">📈</div>
+    <p>This market is live. Capital is locked and the coverage period is active. You can <strong>buy catbond tokens</strong> on the order book to earn premium yield, or <strong>sell tokens</strong> to exit. Tokens redeem at $1.00 at maturity if no earthquake triggers a payout.</p>
+  </div>
+
+  <div class="rh-section">
+    <div class="rh-head">
+      <div class="rh-logo" style="background:rgba(26,90,184,0.1);color:var(--blue-primary)">🇲🇽</div>
+      <div>
+        <div class="rh-name">Government of Mexico</div>
+        <div class="rh-type">Sovereign Nation • via IBRD CAR Program</div>
+      </div>
+    </div>
+    <div class="rh-desc">Mexico's FONDEN natural disaster fund seeks earthquake protection through the World Bank's IBRD Capital-At-Risk program. This on-chain market extends coverage alongside Mexico's existing traditional catbond placements, providing parametric seismic event protection with magnitude-based triggers monitored by the National Seismological Service.</div>
+    <div class="rh-tags">
+      <span class="rh-tag">Sovereign Risk</span>
+      <span class="rh-tag">IBRD CAR Program</span>
+      <span class="rh-tag">Parametric Trigger</span>
+      <span class="rh-tag">Seismic Events</span>
+    </div>
+  </div>
+
+  <div class="sstrip">
+    <div class="ss"><div class="sl">Coverage (TVL)</div><div class="sv">$3,925,000</div></div>
+    <div class="ss"><div class="sl">Token Price</div><div class="sv">$0.96</div></div>
+    <div class="ss"><div class="sl">Redemption at Maturity</div><div class="sv">$1.00</div></div>
+    <div class="ss"><div class="sl">Your Claimable Premium</div><div class="sv" style="color:var(--blue-primary)">$1,247</div></div>
+  </div>
+
+  <div class="two">
+    <div class="panel">
+      <div class="ph"><h3>Order Book</h3><span style="font-size:0.75rem;color:var(--muted)">47 trades • Last: $0.96</span></div>
+      <div class="pb">
+        <div class="ob-mid">
+          <span class="lbl">Mid Price</span>
+          <span class="price">$0.955</span>
+          <span class="lbl">Spread: $0.01 (1.04%)</span>
+        </div>
+        <div class="ob-sides">
+          <div>
+            <h4 style="color:#dc2626">Sellers (Asks)</h4>
+            <div class="ob-lv"><div class="bg" style="background:#dc2626;width:20%"></div><span class="ask">$0.99</span><span>$45,000</span></div>
+            <div class="ob-lv"><div class="bg" style="background:#dc2626;width:45%"></div><span class="ask">$0.98</span><span>$82,500</span></div>
+            <div class="ob-lv"><div class="bg" style="background:#dc2626;width:70%"></div><span class="ask">$0.97</span><span>$120,000</span></div>
+            <div class="ob-lv"><div class="bg" style="background:#dc2626;width:38%"></div><span class="ask">$0.96</span><span>$67,000</span></div>
+          </div>
+          <div>
+            <h4 style="color:#16a34a">Buyers (Bids)</h4>
+            <div class="ob-lv"><div class="bg" style="background:#16a34a;width:60%"></div><span class="bid">$0.95</span><span>$105,000</span></div>
+            <div class="ob-lv"><div class="bg" style="background:#16a34a;width:42%"></div><span class="bid">$0.94</span><span>$75,000</span></div>
+            <div class="ob-lv"><div class="bg" style="background:#16a34a;width:28%"></div><span class="bid">$0.93</span><span>$52,500</span></div>
+            <div class="ob-lv"><div class="bg" style="background:#16a34a;width:16%"></div><span class="bid">$0.92</span><span>$30,000</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="panel" style="margin-bottom:1rem">
+        <div class="ph"><h3>Trade</h3></div>
+        <div class="pb">
+          <div class="ttog"><button class="buy-on">Buy</button><button>Sell</button></div>
+          <div style="font-size:0.6875rem;color:var(--muted);margin-bottom:0.75rem">USDC Balance: $247,500</div>
+          <div class="field">
+            <div class="field-label"><span class="l">Price per token</span></div>
+            <div class="input-box"><input type="number" value="0.95" step="0.01"><span class="unit">USDC</span></div>
+          </div>
+          <div class="field">
+            <div class="field-label"><span class="l">Quantity</span></div>
+            <div class="input-box"><input type="number" value="50000"><span class="unit">tokens</span></div>
+          </div>
+          <div class="info-box">
+            <div class="ir"><span class="k">Total cost</span><span class="v">$47,500</span></div>
+            <div class="ir"><span class="k">Redeems at maturity for</span><span class="v">$50,000</span></div>
+            <div class="ir"><span class="k">Price upside</span><span class="v g">+5.26%</span></div>
+            <div class="ir"><span class="k">Plus premium yield</span><span class="v g">~12% APY</span></div>
+          </div>
+          <button class="btn btn-green btn-block">Buy 50,000 Tokens</button>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="pb" style="display:flex;align-items:center;justify-content:space-between">
+          <div><div style="font-size:0.625rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em">Unclaimed Premium</div><div style="font-size:1.375rem;font-weight:700;color:var(--blue-primary)">$1,247.50</div></div>
+          <button class="btn btn-accent btn-sm">Claim</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Market Progress & Risk Tiers -->
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.25rem;margin-top:1.5rem">
+    <div class="panel">
+      <div class="ph"><h3>Market Progress</h3></div>
+      <div class="pb">
+        <div class="stepper">
+          <div class="stp done"><div class="stl">1. Commitment</div></div>
+          <div class="stp done"><div class="stl">2. Deposit Day</div></div>
+          <div class="stp now"><div class="stl">3. Active</div></div>
+          <div class="stp"><div class="stl">4. Settlement</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="ph"><h3>Risk Tiers</h3><span style="font-size:0.6875rem;color:var(--muted)">What could reduce your capital</span></div>
+      <div class="pb">
+        <div class="rtier"><div class="rdot" style="background:#d97706"></div><div class="ri"><div class="rn">Magnitude 6.0</div><div class="rt">Seismic event ≥ 6.0 Richter</div></div><div class="rs" style="color:#d97706">-25%</div></div>
+        <div class="rtier"><div class="rdot" style="background:#ea580c"></div><div class="ri"><div class="rn">Magnitude 7.0</div><div class="rt">Seismic event ≥ 7.0 Richter</div></div><div class="rs" style="color:#ea580c">-50%</div></div>
+        <div class="rtier"><div class="rdot" style="background:#dc2626"></div><div class="ri"><div class="rn">Magnitude 8.0+</div><div class="rt">Seismic event ≥ 8.0 Richter</div></div><div class="rs" style="color:#dc2626">-100%</div></div>
+        <p style="font-size:0.6875rem;color:var(--muted);margin-top:0.75rem;line-height:1.5">Triggered by objective seismic measurements from the oracle. Below magnitude 6.0, no payout occurs.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Premium Timeline -->
+  <div style="margin-top:2rem">
+    <h3 style="font-size:1rem;font-weight:700;margin-bottom:1rem">Premium Payments</h3>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-bottom:1.5rem">
+      <div class="panel"><div class="pb" style="text-align:center">
+        <div style="font-size:0.625rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em">Total Paid</div>
+        <div style="font-size:1.25rem;font-weight:800;color:var(--blue-primary);margin-top:0.25rem">$235,500</div>
+        <div style="font-size:0.6875rem;color:var(--muted)">2 of 8 quarters</div>
+      </div></div>
+      <div class="panel"><div class="pb" style="text-align:center">
+        <div style="font-size:0.625rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em">Claimed by Holders</div>
+        <div style="font-size:1.25rem;font-weight:800;margin-top:0.25rem">$198,200</div>
+        <div style="font-size:0.6875rem;color:var(--muted)">84% claimed</div>
+      </div></div>
+      <div class="panel"><div class="pb" style="text-align:center">
+        <div style="font-size:0.625rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em">Unclaimed in Vault</div>
+        <div style="font-size:1.25rem;font-weight:800;color:var(--blue-primary);margin-top:0.25rem">$37,300</div>
+        <div style="font-size:0.6875rem;color:var(--muted)">Available to claim</div>
+      </div></div>
+    </div>
+    <div style="display:flex;gap:0;position:relative;margin-bottom:0.5rem">
+      <div style="position:absolute;top:14px;left:20px;right:20px;height:3px;background:var(--secondary);border-radius:2px"></div>
+      <div style="position:absolute;top:14px;left:20px;width:25%;height:3px;background:var(--blue-primary);border-radius:2px"></div>
+      <div style="flex:1;text-align:center;position:relative;z-index:1">
+        <div style="width:28px;height:28px;border-radius:50%;background:#16a34a;color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:0.6875rem;font-weight:700">✓</div>
+        <div style="font-size:0.6875rem;font-weight:600;margin-top:0.375rem">$117,750</div>
+        <div style="font-size:0.5625rem;color:var(--muted)">Q4 2025</div>
+      </div>
+      <div style="flex:1;text-align:center;position:relative;z-index:1">
+        <div style="width:28px;height:28px;border-radius:50%;background:#16a34a;color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:0.6875rem;font-weight:700">✓</div>
+        <div style="font-size:0.6875rem;font-weight:600;margin-top:0.375rem">$117,750</div>
+        <div style="font-size:0.5625rem;color:var(--muted)">Q1 2026</div>
+      </div>
+      <div style="flex:1;text-align:center;position:relative;z-index:1">
+        <div style="width:28px;height:28px;border-radius:50%;background:var(--blue-primary);color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:0.625rem;font-weight:700">→</div>
+        <div style="font-size:0.6875rem;font-weight:600;margin-top:0.375rem">$117,750</div>
+        <div style="font-size:0.5625rem;color:var(--blue-primary);font-weight:600">Apr 15</div>
+      </div>
+      <div style="flex:1;text-align:center;position:relative;z-index:1">
+        <div style="width:28px;height:28px;border-radius:50%;background:var(--secondary);color:var(--muted);display:inline-flex;align-items:center;justify-content:center;font-size:0.6875rem;font-weight:700">Q3</div>
+        <div style="font-size:0.6875rem;font-weight:600;margin-top:0.375rem;color:var(--muted)">$117,750</div>
+        <div style="font-size:0.5625rem;color:var(--muted)">Jul 2026</div>
+      </div>
+    </div>
+    <div style="text-align:center;font-size:0.6875rem;color:var(--muted);margin-top:0.75rem">Next payment due <strong style="color:var(--text)">Apr 15, 2026</strong> • Advance deposit remaining: <strong style="color:#16a34a">$471,000</strong></div>
+  </div>
+</main>
+
+<!-- ═══════════════════════════════════════════
+     PORTFOLIO
+     ═══════════════════════════════════════════ -->
+<main id="p-portfolio" class="hidden">
+  <h1 style="margin-bottom:0.375rem">Portfolio</h1>
+  <p style="color:var(--muted);font-size:0.875rem;margin-bottom:2rem">Your catbond positions across all markets</p>
+  <div class="psum">
+    <div class="psc"><div class="l">Total Value</div><div class="v">$350,000</div></div>
+    <div class="psc"><div class="l">Unclaimed Premium</div><div class="v" style="color:var(--blue-primary)">$3,925</div></div>
+    <div class="psc"><div class="l">Active Positions</div><div class="v">2</div></div>
+  </div>
+  <div class="panel" style="overflow:hidden">
+    <div class="ph"><h3>Holdings</h3></div>
+    <table>
+      <thead><tr><th>Market</th><th>Tokens</th><th>Value</th><th>Premium Earned</th><th>Status</th><th></th></tr></thead>
+      <tbody>
+        <tr>
+          <td><div style="display:flex;align-items:center;gap:0.5rem">🌋<div><div style="font-weight:600">Earthquake</div><div style="font-size:0.6875rem;color:var(--muted)">Mexico</div></div></div></td>
+          <td>250,000</td><td style="font-weight:600">$240,000</td><td style="color:var(--blue-primary)">$3,125</td>
+          <td><span class="badge b-live">Live</span></td><td><button class="claim-btn">Claim $3,125</button></td>
+        </tr>
+        <tr>
+          <td><div style="display:flex;align-items:center;gap:0.5rem">🌊<div><div style="font-weight:600">Flood</div><div style="font-size:0.6875rem;color:var(--muted)">Bangladesh</div></div></div></td>
+          <td>100,000</td><td style="font-weight:600">$100,000</td><td style="color:var(--blue-primary)">$800</td>
+          <td><span class="badge b-done">Matured</span></td><td><button class="claim-btn">Redeem All</button></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Testnet catUSD Faucet -->
+  <div style="margin-top:2.5rem;padding:1.5rem;border-radius:12px;border:1px solid rgba(26,90,184,0.2);background:linear-gradient(135deg,rgba(26,90,184,0.04),rgba(74,158,255,0.08))">
+    <div style="display:flex;gap:1rem;align-items:flex-start">
+      <div style="font-size:1.5rem">🪙</div>
+      <div style="flex:1">
+        <h3 style="font-weight:600;font-size:1rem;margin-bottom:0.25rem">Testnet catUSD Faucet</h3>
+        <p style="font-size:0.8125rem;color:var(--muted);line-height:1.55;margin-bottom:1rem">This is a testnet deployment. Claim free catUSD (our test stablecoin) to try committing capital, trading catbond tokens, and exploring the platform. catUSD has no real value.</p>
+        <div style="font-size:0.875rem;color:var(--muted);margin-bottom:0.75rem">Your balance: <span style="font-weight:600;color:var(--text)">$500,000</span></div>
+        <div style="display:flex;gap:0.75rem;align-items:flex-end">
+          <div style="flex:1;max-width:280px">
+            <div style="font-size:0.75rem;color:var(--muted);margin-bottom:0.25rem">Amount</div>
+            <div style="position:relative">
+              <input type="number" value="100000" style="width:100%;background:#fff;border:1px solid rgba(26,90,184,0.2);border-radius:8px;padding:0.625rem 4rem 0.625rem 1rem;color:var(--text);font-size:0.875rem;outline:none">
+              <span style="position:absolute;right:0.75rem;top:50%;transform:translateY(-50%);font-size:0.75rem;color:var(--muted)">catUSD</span>
+            </div>
+          </div>
+          <button class="btn btn-accent" style="padding:0.625rem 1.25rem;font-size:0.875rem">Claim 100,000 catUSD</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<!-- ═══════════════════════════════════════════
+     DETAIL: MATURED
+     ═══════════════════════════════════════════ -->
+<main id="p-matured" class="hidden">
+  <div class="back" onclick="go('markets')">← Markets</div>
+  <div class="dh">
+    <div class="dh-left">
+      <h1>🌊 Flood Protection <span class="badge b-done">Matured</span></h1>
+      <div class="sub">Bangladesh Delta • Coverage period ended</div>
+      <div style="font-size:0.6875rem;color:var(--muted);margin-top:0.5rem">👥 45 investors</div>
+    </div>
+    <div class="dh-right"><div class="dh-yield">8%</div><div class="dh-yield-label">Premium Rate</div></div>
+  </div>
+
+  <div class="explainer">
+    <div class="ico">✅</div>
+    <p>This market has <strong>matured without a triggering event</strong>. All investor capital has been preserved. Token holders can redeem their tokens at $1.00 per token and claim any uncollected premium.</p>
+  </div>
+
+  <div class="rh-section">
+    <div class="rh-head">
+      <div class="rh-logo" style="background:rgba(22,163,74,0.1);color:#16a34a">🇧🇩</div>
+      <div>
+        <div class="rh-name">Bangladesh Delta Commission</div>
+        <div class="rh-type">Government Agency • Disaster Relief Fund</div>
+      </div>
+    </div>
+    <div class="rh-desc">The Bangladesh Delta Commission sought parametric flood coverage for the Ganges-Brahmaputra-Meghna delta region. This market provided coverage during the monsoon season, with water level triggers measured at government monitoring stations. Coverage period ended successfully with no triggering event.</div>
+    <div class="rh-tags">
+      <span class="rh-tag">Government Agency</span>
+      <span class="rh-tag">Disaster Relief</span>
+      <span class="rh-tag">Parametric Trigger</span>
+      <span class="rh-tag">Water Level Monitoring</span>
+    </div>
+  </div>
+
+  <div class="sstrip">
+    <div class="ss"><div class="sl">Coverage Amount</div><div class="sv">$2,500,000</div></div>
+    <div class="ss"><div class="sl">Premium Rate</div><div class="sv">8% APY</div></div>
+    <div class="ss"><div class="sl">Redemption Rate</div><div class="sv">$1.00</div></div>
+    <div class="ss"><div class="sl">Ended</div><div class="sv">Feb 2026</div></div>
+  </div>
+
+  <div class="two">
+    <div>
+      <div class="panel" style="margin-bottom:1.25rem">
+        <div class="ph"><h3>Market Progress</h3></div>
+        <div class="pb">
+          <div class="stepper">
+            <div class="stp done"><div class="stl">1. Commitment</div></div>
+            <div class="stp done"><div class="stl">2. Deposit Day</div></div>
+            <div class="stp done"><div class="stl">3. Active</div></div>
+            <div class="stp now"><div class="stl">4. Settlement</div></div>
+          </div>
+          <div style="text-align:center;padding:1.5rem 0">
+            <div style="font-size:1.25rem;margin-bottom:0.5rem">✅</div>
+            <div style="font-size:1rem;font-weight:700;margin-bottom:0.25rem">No Triggering Event</div>
+            <div style="font-size:0.8125rem;color:var(--muted)">Coverage period completed successfully. Full principal is available for redemption.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="ph"><h3>Market Summary</h3></div>
+        <div class="pb">
+          <div class="info-box">
+            <div class="ir"><span class="k">Total coverage provided</span><span class="v">$2,500,000</span></div>
+            <div class="ir"><span class="k">Duration</span><span class="v">12 months</span></div>
+            <div class="ir"><span class="k">Total premium distributed</span><span class="v g">$200,000</span></div>
+            <hr class="divider">
+            <div class="ir"><span class="k">Triggering events</span><span class="v">None</span></div>
+            <div class="ir"><span class="k">Payout to risk holder</span><span class="v">$0</span></div>
+            <div class="ir"><span class="k">Investor principal returned</span><span class="v g">100%</span></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <div>
+      <div class="panel">
+        <div class="ph"><h3>Redeem Tokens</h3></div>
+        <div class="pb">
+          <div class="info-box">
+            <div class="ir"><span class="k">Your balance</span><span class="v">100,000 tokens</span></div>
+            <div class="ir"><span class="k">Redemption rate</span><span class="v">$1.00 / token</span></div>
+            <div class="ir"><span class="k">Redeemable value</span><span class="v" style="font-weight:700">$100,000</span></div>
+            <hr class="divider">
+            <div class="ir"><span class="k">Unclaimed premium</span><span class="v g">$800</span></div>
+          </div>
+          <button class="btn btn-accent btn-block" style="margin-bottom:0.5rem">Redeem All Tokens</button>
+          <button class="btn btn-ghost btn-block">Claim Premium Only</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Premium Timeline -->
+  <div style="margin-top:2rem">
+    <h3 style="font-size:1rem;font-weight:700;margin-bottom:1rem">Premium Payments</h3>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-bottom:1.5rem">
+      <div class="panel"><div class="pb" style="text-align:center">
+        <div style="font-size:0.625rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em">Total Distributed</div>
+        <div style="font-size:1.25rem;font-weight:800;color:#16a34a;margin-top:0.25rem">$200,000</div>
+        <div style="font-size:0.6875rem;color:var(--muted)">4 of 4 quarters</div>
+      </div></div>
+      <div class="panel"><div class="pb" style="text-align:center">
+        <div style="font-size:0.625rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em">Claimed by Holders</div>
+        <div style="font-size:1.25rem;font-weight:800;margin-top:0.25rem">$193,400</div>
+        <div style="font-size:0.6875rem;color:var(--muted)">97% claimed</div>
+      </div></div>
+      <div class="panel"><div class="pb" style="text-align:center">
+        <div style="font-size:0.625rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em">Still Redeemable</div>
+        <div style="font-size:1.25rem;font-weight:800;color:var(--blue-primary);margin-top:0.25rem">$6,600</div>
+        <div style="font-size:0.6875rem;color:var(--muted)">Claim anytime</div>
+      </div></div>
+    </div>
+    <div style="display:flex;gap:0;position:relative;margin-bottom:0.5rem">
+      <div style="position:absolute;top:14px;left:20px;right:20px;height:3px;background:#16a34a;border-radius:2px"></div>
+      <div style="flex:1;text-align:center;position:relative;z-index:1">
+        <div style="width:28px;height:28px;border-radius:50%;background:#16a34a;color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:0.6875rem;font-weight:700">✓</div>
+        <div style="font-size:0.6875rem;font-weight:600;margin-top:0.375rem">$50,000</div>
+        <div style="font-size:0.5625rem;color:var(--muted)">Q1 2025</div>
+      </div>
+      <div style="flex:1;text-align:center;position:relative;z-index:1">
+        <div style="width:28px;height:28px;border-radius:50%;background:#16a34a;color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:0.6875rem;font-weight:700">✓</div>
+        <div style="font-size:0.6875rem;font-weight:600;margin-top:0.375rem">$50,000</div>
+        <div style="font-size:0.5625rem;color:var(--muted)">Q2 2025</div>
+      </div>
+      <div style="flex:1;text-align:center;position:relative;z-index:1">
+        <div style="width:28px;height:28px;border-radius:50%;background:#16a34a;color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:0.6875rem;font-weight:700">✓</div>
+        <div style="font-size:0.6875rem;font-weight:600;margin-top:0.375rem">$50,000</div>
+        <div style="font-size:0.5625rem;color:var(--muted)">Q3 2025</div>
+      </div>
+      <div style="flex:1;text-align:center;position:relative;z-index:1">
+        <div style="width:28px;height:28px;border-radius:50%;background:#16a34a;color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:0.6875rem;font-weight:700">✓</div>
+        <div style="font-size:0.6875rem;font-weight:600;margin-top:0.375rem">$50,000</div>
+        <div style="font-size:0.5625rem;color:var(--muted)">Q4 2025</div>
+      </div>
+    </div>
+    <div style="text-align:center;font-size:0.6875rem;color:#16a34a;font-weight:600;margin-top:0.75rem">All premium payments completed ✓</div>
+  </div>
+</main>
+
+<!-- ═══════════════════════════════════════════
+     DETAIL: COMMIT-SEADRIF
+     ═══════════════════════════════════════════ -->
+<main id="p-commit-seadrif" class="hidden">
+  <div class="back" onclick="go('markets')">← Markets</div>
+  <div class="dh">
+    <div class="dh-left">
+      <h1>🌊 Flood Protection <span class="badge b-open">Open</span></h1>
+      <div class="sub">Southeast Asia • ASEAN • 18-month coverage</div>
+      <div style="font-size:0.6875rem;color:var(--muted);margin-top:0.5rem">👥 8 investors</div>
+    </div>
+    <div class="dh-right"><div class="dh-yield">9%</div><div class="dh-yield-label">Premium Rate</div></div>
+  </div>
+  <div class="explainer"><div class="ico">💡</div><p>You're funding parametric flood coverage for ASEAN nations via the SEADRIF regional risk pool. Triggered by water level measurements at monitoring stations across Lao PDR, Myanmar, and Cambodia.</p></div>
+  <div class="rh-section">
+    <div class="rh-head"><div class="rh-logo" style="background:rgba(26,90,184,0.1);color:var(--blue-primary)">🌏</div><div><div class="rh-name">SEADRIF</div><div class="rh-type">Regional Risk Pool • ASEAN Disaster Risk Financing</div></div></div>
+    <div class="rh-desc">The Southeast Asia Disaster Risk Insurance Facility (SEADRIF) is a regional risk pool established by ASEAN member states to provide rapid disaster response funding. This market extends SEADRIF's traditional risk transfer to on-chain capital markets, providing parametric flood coverage for Lao PDR, Myanmar, and Cambodia.</div>
+    <div class="rh-tags"><span class="rh-tag">Regional Risk Pool</span><span class="rh-tag">ASEAN</span><span class="rh-tag">Parametric Trigger</span><span class="rh-tag">Water Level Monitoring</span></div>
+  </div>
+  <div class="sstrip">
+    <div class="ss"><div class="sl">Coverage Target</div><div class="sv">$3,000,000</div></div>
+    <div class="ss"><div class="sl">Committed So Far</div><div class="sv">$720,000</div></div>
+    <div class="ss"><div class="sl">Closes In</div><div class="sv">12d 8h</div></div>
+    <div class="ss"><div class="sl">Min Fill Required</div><div class="sv">25%</div></div>
+  </div>
+  <div class="two">
+    <div>
+      <div class="panel" style="margin-bottom:1.25rem">
+        <div class="ph"><h3>Market Progress</h3></div>
+        <div class="pb">
+          <div class="stepper">
+            <div class="stp now"><div class="stl">1. Commitment</div></div>
+            <div class="stp"><div class="stl">2. Deposit Day</div></div>
+            <div class="stp"><div class="stl">3. Active</div></div>
+            <div class="stp"><div class="stl">4. Settlement</div></div>
+          </div>
+          <div style="margin-bottom:1.5rem">
+            <div style="font-size:2rem;font-weight:800">$720,000</div>
+            <div style="font-size:0.8125rem;color:var(--muted);margin-bottom:0.75rem">of $3,000,000 target</div>
+            <div class="prog" style="height:8px;margin-bottom:0.25rem"><div class="fill" style="width:24%"></div></div>
+            <div style="display:flex;justify-content:space-between;font-size:0.6875rem;color:var(--muted)"><span>24% filled</span><span style="color:var(--muted)">25% min required</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="ph"><h3>Risk Tiers</h3><span style="font-size:0.6875rem;color:var(--muted)">What could reduce your capital</span></div>
+        <div class="pb">
+          <div class="rtier"><div class="rdot" style="background:#d97706"></div><div class="ri"><div class="rn">Minor Flooding</div><div class="rt">Water level ≥ 3m above normal</div></div><div class="rs" style="color:#d97706">-25%</div></div>
+          <div class="rtier"><div class="rdot" style="background:#ea580c"></div><div class="ri"><div class="rn">Major Flooding</div><div class="rt">Water level ≥ 5m above normal</div></div><div class="rs" style="color:#ea580c">-50%</div></div>
+          <div class="rtier"><div class="rdot" style="background:#dc2626"></div><div class="ri"><div class="rn">Catastrophic Flooding</div><div class="rt">Water level ≥ 8m above normal</div></div><div class="rs" style="color:#dc2626">-100%</div></div>
+          <p style="font-size:0.6875rem;color:var(--muted);margin-top:0.75rem;line-height:1.5">Triggered by water level measurements at government monitoring stations. Below the minor threshold, no payout occurs.</p>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div class="panel">
+        <div class="ph"><h3>Commit Capital</h3></div>
+        <div class="pb">
+          <div class="field">
+            <div class="field-label"><span class="l">Amount</span><span class="r">Balance: $500,000</span></div>
+            <div class="input-box"><input type="number" value="50000"><button class="max">MAX</button></div>
+          </div>
+          <div class="info-box">
+            <div class="ir"><span class="k">Your commitment</span><span class="v">$50,000</span></div>
+            <div class="ir"><span class="k">Deposit guarantee (1%)</span><span class="v w">$500</span></div>
+            <div class="ir"><span class="k">Remaining due on Deposit Day</span><span class="v">$49,500</span></div>
+            <hr class="divider">
+            <div class="ir"><span class="k">Est. annual premium earned</span><span class="v g">$4,500</span></div>
+            <div class="ir"><span class="k">Est. quarterly payout</span><span class="v g">$1,125</span></div>
+          </div>
+          <button class="btn btn-accent btn-block">Commit $50,000</button>
+          <p style="font-size:0.625rem;color:var(--muted);margin-top:0.75rem;line-height:1.5;text-align:center">Your 1% deposit guarantee is returned when you complete your deposit on Deposit Day.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- Premium Timeline -->
+  <div style="margin-top:2rem">
+    <h3 style="font-size:1rem;font-weight:700;margin-bottom:1rem">Premium Schedule</h3>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.5rem">
+      <div class="panel"><div class="pb" style="text-align:center">
+        <div style="font-size:0.625rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em">Advance Deposit</div>
+        <div style="font-size:1.5rem;font-weight:800;color:#16a34a;margin:0.25rem 0">✓ Paid</div>
+        <div style="font-size:1.125rem;font-weight:700">$135,000</div>
+        <div style="font-size:0.6875rem;color:var(--muted);margin-top:0.25rem">Covers first 6 quarters</div>
+      </div></div>
+      <div class="panel"><div class="pb" style="text-align:center">
+        <div style="font-size:0.625rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em">Payment Terms</div>
+        <div style="font-size:1.125rem;font-weight:700;margin:0.5rem 0">$22,500 / quarter</div>
+        <div style="font-size:0.6875rem;color:var(--muted)">9% APY on $3,000,000 coverage</div>
+      </div></div>
+    </div>
+    <div style="display:flex;gap:0;position:relative">
+      <div style="position:absolute;top:14px;left:40px;right:40px;height:3px;background:var(--secondary);border-radius:2px"></div>
+      <div style="flex:1;text-align:center;position:relative;z-index:1">
+        <div style="width:28px;height:28px;border-radius:50%;background:var(--blue-primary);color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:0.6875rem;font-weight:700">Q1</div>
+        <div style="font-size:0.6875rem;font-weight:600;margin-top:0.375rem">$22,500</div>
+        <div style="font-size:0.5625rem;color:var(--muted)">Aug 2026</div>
+      </div>
+      <div style="flex:1;text-align:center;position:relative;z-index:1">
+        <div style="width:28px;height:28px;border-radius:50%;background:var(--secondary);color:var(--muted);display:inline-flex;align-items:center;justify-content:center;font-size:0.6875rem;font-weight:700">Q2</div>
+        <div style="font-size:0.6875rem;font-weight:600;margin-top:0.375rem">$22,500</div>
+        <div style="font-size:0.5625rem;color:var(--muted)">Nov 2026</div>
+      </div>
+      <div style="flex:1;text-align:center;position:relative;z-index:1">
+        <div style="width:28px;height:28px;border-radius:50%;background:var(--secondary);color:var(--muted);display:inline-flex;align-items:center;justify-content:center;font-size:0.6875rem;font-weight:700">Q3</div>
+        <div style="font-size:0.6875rem;font-weight:600;margin-top:0.375rem">$22,500</div>
+        <div style="font-size:0.5625rem;color:var(--muted)">Feb 2027</div>
+      </div>
+      <div style="flex:1;text-align:center;position:relative;z-index:1">
+        <div style="width:28px;height:28px;border-radius:50%;background:var(--secondary);color:var(--muted);display:inline-flex;align-items:center;justify-content:center;font-size:0.6875rem;font-weight:700">Q4+</div>
+        <div style="font-size:0.6875rem;font-weight:600;margin-top:0.375rem">$22,500</div>
+        <div style="font-size:0.5625rem;color:var(--muted)">Quarterly</div>
+      </div>
+    </div>
+    <p style="font-size:0.6875rem;color:var(--muted);margin-top:1rem;line-height:1.5;text-align:center">Premium is escrowed upfront and distributed to token holders pro-rata each quarter. If the risk holder fails to pay, the market enters early exit.</p>
+  </div>
+</main>
+
+<!-- ═══════════════════════════════════════════
+     DETAIL: COMMIT-KIZUNA
+     ═══════════════════════════════════════════ -->
+<main id="p-commit-kizuna" class="hidden">
+  <div class="back" onclick="go('markets')">← Markets</div>
+  <div class="dh">
+    <div class="dh-left">
+      <h1>🏔️ Earthquake Protection <span class="badge b-open">Open</span></h1>
+      <div class="sub">Japan • Kizuna Re III • 60-month coverage</div>
+      <div style="font-size:0.6875rem;color:var(--muted);margin-top:0.5rem">👥 19 investors</div>
+    </div>
+    <div class="dh-right"><div class="dh-yield">6.5%</div><div class="dh-yield-label">Premium Rate</div></div>
+  </div>
+  <div class="explainer"><div class="ico">💡</div><p>You're funding indemnity earthquake coverage for Tokio Marine & Nichido Fire Insurance. This protects against Japanese earthquake losses including shake, tsunami, and fire across a 5-year term.</p></div>
+  <div class="rh-section">
+    <div class="rh-head"><div class="rh-logo" style="background:rgba(26,90,184,0.1);color:var(--blue-primary)">🇯🇵</div><div><div class="rh-name">Tokio Marine</div><div class="rh-type">Insurer • Japan • Kizuna Re III Structure</div></div></div>
+    <div class="rh-desc">Tokio Marine & Nichido Fire Insurance is seeking additional earthquake protection through the Kizuna Re III reinsurance structure. This on-chain market extends coverage for Japanese earthquake losses with attachment thresholds modeled on the traditional Kizuna Re placement.</div>
+    <div class="rh-tags"><span class="rh-tag">Insurer</span><span class="rh-tag">Japan Earthquake</span><span class="rh-tag">Indemnity Trigger</span><span class="rh-tag">Shake + Tsunami</span></div>
+  </div>
+  <div class="sstrip">
+    <div class="ss"><div class="sl">Coverage Target</div><div class="sv">$8,000,000</div></div>
+    <div class="ss"><div class="sl">Committed So Far</div><div class="sv">$2,400,000</div></div>
+    <div class="ss"><div class="sl">Closes In</div><div class="sv">21d 6h</div></div>
+    <div class="ss"><div class="sl">Min Fill Required</div><div class="sv">25%</div></div>
+  </div>
+  <div class="two">
+    <div>
+      <div class="panel" style="margin-bottom:1.25rem">
+        <div class="ph"><h3>Market Progress</h3></div>
+        <div class="pb">
+          <div class="stepper">
+            <div class="stp now"><div class="stl">1. Commitment</div></div>
+            <div class="stp"><div class="stl">2. Deposit Day</div></div>
+            <div class="stp"><div class="stl">3. Active</div></div>
+            <div class="stp"><div class="stl">4. Settlement</div></div>
+          </div>
+          <div style="margin-bottom:1.5rem">
+            <div style="font-size:2rem;font-weight:800">$2,400,000</div>
+            <div style="font-size:0.8125rem;color:var(--muted);margin-bottom:0.75rem">of $8,000,000 target</div>
+            <div class="prog" style="height:8px;margin-bottom:0.25rem"><div class="fill" style="width:30%"></div></div>
+            <div style="display:flex;justify-content:space-between;font-size:0.6875rem;color:var(--muted)"><span>30% filled</span><span style="color:var(--muted)">25% min required</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="ph"><h3>Risk Tiers</h3><span style="font-size:0.6875rem;color:var(--muted)">What could reduce your capital</span></div>
+        <div class="pb">
+          <div class="rtier"><div class="rdot" style="background:#d97706"></div><div class="ri"><div class="rn">Magnitude 6.0</div><div class="rt">Seismic event ≥ 6.0 on Richter Scale</div></div><div class="rs" style="color:#d97706">-25%</div></div>
+          <div class="rtier"><div class="rdot" style="background:#ea580c"></div><div class="ri"><div class="rn">Magnitude 7.0</div><div class="rt">Seismic event ≥ 7.0 on Richter Scale</div></div><div class="rs" style="color:#ea580c">-50%</div></div>
+          <div class="rtier"><div class="rdot" style="background:#dc2626"></div><div class="ri"><div class="rn">Magnitude 8.0+</div><div class="rt">Seismic event ≥ 8.0 on Richter Scale</div></div><div class="rs" style="color:#dc2626">-100%</div></div>
+          <p style="font-size:0.6875rem;color:var(--muted);margin-top:0.75rem;line-height:1.5">Triggered by seismic measurements from Japan Meteorological Agency. Below 6.0 magnitude, no payout occurs.</p>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div class="panel">
+        <div class="ph"><h3>Commit Capital</h3></div>
+        <div class="pb">
+          <div class="field">
+            <div class="field-label"><span class="l">Amount</span><span class="r">Balance: $500,000</span></div>
+            <div class="input-box"><input type="number" value="200000"><button class="max">MAX</button></div>
+          </div>
+          <div class="info-box">
+            <div class="ir"><span class="k">Your commitment</span><span class="v">$200,000</span></div>
+            <div class="ir"><span class="k">Deposit guarantee (1%)</span><span class="v w">$2,000</span></div>
+            <div class="ir"><span class="k">Remaining due on Deposit Day</span><span class="v">$198,000</span></div>
+            <hr class="divider">
+            <div class="ir"><span class="k">Est. annual premium earned</span><span class="v g">$13,000</span></div>
+            <div class="ir"><span class="k">Est. quarterly payout</span><span class="v g">$3,250</span></div>
+          </div>
+          <button class="btn btn-accent btn-block">Commit $200,000</button>
+          <p style="font-size:0.625rem;color:var(--muted);margin-top:0.75rem;line-height:1.5;text-align:center">Your 1% deposit guarantee is returned when you complete your deposit on Deposit Day.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- Premium Timeline -->
+  <div style="margin-top:2rem">
+    <h3 style="font-size:1rem;font-weight:700;margin-bottom:1rem">Premium Schedule</h3>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.5rem">
+      <div class="panel"><div class="pb" style="text-align:center">
+        <div style="font-size:0.625rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em">Advance Deposit</div>
+        <div style="font-size:1.5rem;font-weight:800;color:#16a34a;margin:0.25rem 0">✓ Paid</div>
+        <div style="font-size:1.125rem;font-weight:700">$260,000</div>
+        <div style="font-size:0.6875rem;color:var(--muted);margin-top:0.25rem">Covers first 10 quarters</div>
+      </div></div>
+      <div class="panel"><div class="pb" style="text-align:center">
+        <div style="font-size:0.625rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em">Payment Terms</div>
+        <div style="font-size:1.125rem;font-weight:700;margin:0.5rem 0">$26,000 / quarter</div>
+        <div style="font-size:0.6875rem;color:var(--muted)">6.5% APY on $8,000,000 coverage</div>
+      </div></div>
+    </div>
+    <div style="display:flex;gap:0;position:relative">
+      <div style="position:absolute;top:14px;left:40px;right:40px;height:3px;background:var(--secondary);border-radius:2px"></div>
+      <div style="flex:1;text-align:center;position:relative;z-index:1">
+        <div style="width:28px;height:28px;border-radius:50%;background:var(--blue-primary);color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:0.6875rem;font-weight:700">Q1</div>
+        <div style="font-size:0.6875rem;font-weight:600;margin-top:0.375rem">$26,000</div>
+        <div style="font-size:0.5625rem;color:var(--muted)">Jul 2026</div>
+      </div>
+      <div style="flex:1;text-align:center;position:relative;z-index:1">
+        <div style="width:28px;height:28px;border-radius:50%;background:var(--secondary);color:var(--muted);display:inline-flex;align-items:center;justify-content:center;font-size:0.6875rem;font-weight:700">Q2</div>
+        <div style="font-size:0.6875rem;font-weight:600;margin-top:0.375rem">$26,000</div>
+        <div style="font-size:0.5625rem;color:var(--muted)">Oct 2026</div>
+      </div>
+      <div style="flex:1;text-align:center;position:relative;z-index:1">
+        <div style="width:28px;height:28px;border-radius:50%;background:var(--secondary);color:var(--muted);display:inline-flex;align-items:center;justify-content:center;font-size:0.6875rem;font-weight:700">Q3</div>
+        <div style="font-size:0.6875rem;font-weight:600;margin-top:0.375rem">$26,000</div>
+        <div style="font-size:0.5625rem;color:var(--muted)">Jan 2027</div>
+      </div>
+      <div style="flex:1;text-align:center;position:relative;z-index:1">
+        <div style="width:28px;height:28px;border-radius:50%;background:var(--secondary);color:var(--muted);display:inline-flex;align-items:center;justify-content:center;font-size:0.6875rem;font-weight:700">Q4+</div>
+        <div style="font-size:0.6875rem;font-weight:600;margin-top:0.375rem">$26,000</div>
+        <div style="font-size:0.5625rem;color:var(--muted)">Quarterly</div>
+      </div>
+    </div>
+    <p style="font-size:0.6875rem;color:var(--muted);margin-top:1rem;line-height:1.5;text-align:center">Premium is escrowed upfront and distributed to token holders pro-rata each quarter. If the risk holder fails to pay, the market enters early exit.</p>
+  </div>
+</main>
+
+<!-- ═══════════════════════════════════════════
+     DETAIL: ACTIVE-CYBER
+     ═══════════════════════════════════════════ -->
+<main id="p-active-cyber" class="hidden">
+  <div class="back" onclick="go('markets')">← Markets</div>
+  <div class="dh">
+    <div class="dh-left">
+      <h1>🛡️ Cyber Catastrophe <span class="badge b-live">Live</span></h1>
+      <div class="sub">Global • Multi-sector • Expires Feb 2028</div>
+      <div style="font-size:0.6875rem;color:var(--muted);margin-top:0.5rem">👥 87 investors</div>
+    </div>
+    <div class="dh-right"><div class="dh-yield">14%</div><div class="dh-yield-label">Annual Premium Yield</div></div>
+  </div>
+  <div class="explainer"><div class="ico">📈</div><p>This market is live. Industry loss coverage for systemic cyber catastrophe events modeled on Beazley's PoleStar structure. Capital is locked and trading active on the order book.</p></div>
+  <div class="rh-section">
+    <div class="rh-head"><div class="rh-logo" style="background:rgba(26,90,184,0.1);color:var(--blue-primary)">🏢</div><div><div class="rh-name">Beazley plc</div><div class="rh-type">Insurer • Cyber Risk Specialist</div></div></div>
+    <div class="rh-desc">Beazley is seeking additional cyber catastrophe protection through this parametric market. Coverage is triggered by aggregate industry cyber losses exceeding attachment thresholds, with exposure to systemic events across all sectors.</div>
+    <div class="rh-tags"><span class="rh-tag">Insurer</span><span class="rh-tag">Cyber Risk</span><span class="rh-tag">Parametric Trigger</span><span class="rh-tag">Industry Loss Index</span></div>
+  </div>
+  <div class="sstrip">
+    <div class="ss"><div class="sl">Coverage (TVL)</div><div class="sv">$4,750,000</div></div>
+    <div class="ss"><div class="sl">Token Price</div><div class="sv">$0.94</div></div>
+    <div class="ss"><div class="sl">Redemption at Maturity</div><div class="sv">$1.00</div></div>
+    <div class="ss"><div class="sl">Your Claimable Premium</div><div class="sv" style="color:var(--blue-primary)">$2,100</div></div>
+  </div>
+  <div class="two">
+    <div class="panel">
+      <div class="ph"><h3>Order Book</h3><span style="font-size:0.75rem;color:var(--muted)">31 trades • Last: $0.94</span></div>
+    <div class="pb">
+      <div class="ob-mid">
+        <span class="lbl">Mid Price</span>
+        <span class="price">$0.935</span>
+        <span class="lbl">Spread: $0.02 (2.1%)</span>
+      </div>
+      <div class="ob-sides">
+        <div>
+          <h4 style="color:#dc2626">Sellers (Asks)</h4>
+          <div class="ob-lv"><div class="bg" style="background:#dc2626;width:25%"></div><span class="ask">$0.97</span><span>$95,000</span></div>
+          <div class="ob-lv"><div class="bg" style="background:#dc2626;width:55%"></div><span class="ask">$0.96</span><span>$180,000</span></div>
+          <div class="ob-lv"><div class="bg" style="background:#dc2626;width:80%"></div><span class="ask">$0.95</span><span>$260,000</span></div>
+          <div class="ob-lv"><div class="bg" style="background:#dc2626;width:40%"></div><span class="ask">$0.94</span><span>$130,000</span></div>
+        </div>
+        <div>
+          <h4 style="color:#16a34a">Buyers (Bids)</h4>
+          <div class="ob-lv"><div class="bg" style="background:#16a34a;width:65%"></div><span class="bid">$0.93</span><span>$210,000</span></div>
+          <div class="ob-lv"><div class="bg" style="background:#16a34a;width:45%"></div><span class="bid">$0.92</span><span>$145,000</span></div>
+          <div class="ob-lv"><div class="bg" style="background:#16a34a;width:30%"></div><span class="bid">$0.91</span><span>$98,000</span></div>
+          <div class="ob-lv"><div class="bg" style="background:#16a34a;width:15%"></div><span class="bid">$0.90</span><span>$50,000</span></div>
+        </div>
+      </div>
+    </div>
+    </div>
+    <div>
+      <div class="panel" style="margin-bottom:1rem">
+        <div class="ph"><h3>Trade</h3></div>
+        <div class="pb">
+          <div class="ttog"><button class="buy-on">Buy</button><button>Sell</button></div>
+          <div style="font-size:0.6875rem;color:var(--muted);margin-bottom:0.75rem">USDC Balance: $247,500</div>
+          <div class="field">
+            <div class="field-label"><span class="l">Price per token</span></div>
+            <div class="input-box"><input type="number" value="0.93" step="0.01"><span class="unit">USDC</span></div>
+          </div>
+          <div class="field">
+            <div class="field-label"><span class="l">Quantity</span></div>
+            <div class="input-box"><input type="number" value="25000"><span class="unit">tokens</span></div>
+          </div>
+          <div class="info-box">
+            <div class="ir"><span class="k">Total cost</span><span class="v">$23,250</span></div>
+            <div class="ir"><span class="k">Redeems at maturity for</span><span class="v">$25,000</span></div>
+            <div class="ir"><span class="k">Price upside</span><span class="v g">+7.53%</span></div>
+            <div class="ir"><span class="k">Plus premium yield</span><span class="v g">~14% APY</span></div>
+          </div>
+          <button class="btn btn-green btn-block">Buy 25,000 Tokens</button>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="pb" style="display:flex;align-items:center;justify-content:space-between">
+          <div><div style="font-size:0.625rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em">Unclaimed Premium</div><div style="font-size:1.375rem;font-weight:700;color:var(--blue-primary)">$2,830.00</div></div>
+          <button class="btn btn-accent btn-sm">Claim</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.25rem;margin-top:1.5rem">
+    <div class="panel">
+      <div class="ph"><h3>Market Progress</h3></div>
+      <div class="pb">
+        <div class="stepper">
+          <div class="stp done"><div class="stl">1. Commitment</div></div>
+          <div class="stp done"><div class="stl">2. Deposit Day</div></div>
+          <div class="stp now"><div class="stl">3. Active</div></div>
+          <div class="stp"><div class="stl">4. Settlement</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="ph"><h3>Risk Tiers</h3><span style="font-size:0.6875rem;color:var(--muted)">What could reduce your capital</span></div>
+      <div class="pb">
+        <div class="rtier"><div class="rdot" style="background:#d97706"></div><div class="ri"><div class="rn">Moderate Cyber Event</div><div class="rt">Industry losses ≥ $5B aggregate</div></div><div class="rs" style="color:#d97706">-25%</div></div>
+        <div class="rtier"><div class="rdot" style="background:#ea580c"></div><div class="ri"><div class="rn">Major Cyber Event</div><div class="rt">Industry losses ≥ $15B aggregate</div></div><div class="rs" style="color:#ea580c">-50%</div></div>
+        <div class="rtier"><div class="rdot" style="background:#dc2626"></div><div class="ri"><div class="rn">Systemic Cyber Event</div><div class="rt">Industry losses ≥ $30B aggregate</div></div><div class="rs" style="color:#dc2626">-100%</div></div>
+        <p style="font-size:0.6875rem;color:var(--muted);margin-top:0.75rem;line-height:1.5">Triggered by aggregate industry cyber loss index. Below $5B threshold, no payout occurs.</p>
+      </div>
+    </div>
+  </div>
+  <!-- Premium Timeline -->
+  <div style="margin-top:2rem">
+    <h3 style="font-size:1rem;font-weight:700;margin-bottom:1rem">Premium Payments</h3>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-bottom:1.5rem">
+      <div class="panel"><div class="pb" style="text-align:center">
+        <div style="font-size:0.625rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em">Total Paid</div>
+        <div style="font-size:1.25rem;font-weight:800;color:var(--blue-primary);margin-top:0.25rem">$332,500</div>
+        <div style="font-size:0.6875rem;color:var(--muted)">2 of 8 quarters</div>
+      </div></div>
+      <div class="panel"><div class="pb" style="text-align:center">
+        <div style="font-size:0.625rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em">Claimed by Holders</div>
+        <div style="font-size:1.25rem;font-weight:800;margin-top:0.25rem">$280,900</div>
+        <div style="font-size:0.6875rem;color:var(--muted)">84% claimed</div>
+      </div></div>
+      <div class="panel"><div class="pb" style="text-align:center">
+        <div style="font-size:0.625rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em">Unclaimed in Vault</div>
+        <div style="font-size:1.25rem;font-weight:800;color:var(--blue-primary);margin-top:0.25rem">$51,600</div>
+        <div style="font-size:0.6875rem;color:var(--muted)">Available to claim</div>
+      </div></div>
+    </div>
+    <div style="display:flex;gap:0;position:relative;margin-bottom:0.5rem">
+      <div style="position:absolute;top:14px;left:20px;right:20px;height:3px;background:var(--secondary);border-radius:2px"></div>
+      <div style="position:absolute;top:14px;left:20px;width:25%;height:3px;background:var(--blue-primary);border-radius:2px"></div>
+      <div style="flex:1;text-align:center;position:relative;z-index:1">
+        <div style="width:28px;height:28px;border-radius:50%;background:#16a34a;color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:0.6875rem;font-weight:700">✓</div>
+        <div style="font-size:0.6875rem;font-weight:600;margin-top:0.375rem">$166,250</div>
+        <div style="font-size:0.5625rem;color:var(--muted)">Q4 2025</div>
+      </div>
+      <div style="flex:1;text-align:center;position:relative;z-index:1">
+        <div style="width:28px;height:28px;border-radius:50%;background:#16a34a;color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:0.6875rem;font-weight:700">✓</div>
+        <div style="font-size:0.6875rem;font-weight:600;margin-top:0.375rem">$166,250</div>
+        <div style="font-size:0.5625rem;color:var(--muted)">Q1 2026</div>
+      </div>
+      <div style="flex:1;text-align:center;position:relative;z-index:1">
+        <div style="width:28px;height:28px;border-radius:50%;background:var(--blue-primary);color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:0.625rem;font-weight:700">→</div>
+        <div style="font-size:0.6875rem;font-weight:600;margin-top:0.375rem">$166,250</div>
+        <div style="font-size:0.5625rem;color:var(--blue-primary);font-weight:600">Apr 20</div>
+      </div>
+      <div style="flex:1;text-align:center;position:relative;z-index:1">
+        <div style="width:28px;height:28px;border-radius:50%;background:var(--secondary);color:var(--muted);display:inline-flex;align-items:center;justify-content:center;font-size:0.6875rem;font-weight:700">Q3</div>
+        <div style="font-size:0.6875rem;font-weight:600;margin-top:0.375rem;color:var(--muted)">$166,250</div>
+        <div style="font-size:0.5625rem;color:var(--muted)">Jul 2026</div>
+      </div>
+    </div>
+    <div style="text-align:center;font-size:0.6875rem;color:var(--muted);margin-top:0.75rem">Next payment due <strong style="color:var(--text)">Apr 20, 2026</strong> • Advance deposit remaining: <strong style="color:#16a34a">$665,000</strong></div>
+  </div>
+</main>
+
+<!-- ═══════════════════════════════════════════
+     DETAIL: ACTIVE-TERROR
+     ═══════════════════════════════════════════ -->
+<main id="p-active-terror" class="hidden">
+  <div class="back" onclick="go('markets')">← Markets</div>
+  <div class="dh">
+    <div class="dh-left">
+      <h1>🏛️ Terrorism Protection <span class="badge b-live">Live</span></h1>
+      <div class="sub">United Kingdom • Pool Re • Expires Apr 2028</div>
+      <div style="font-size:0.6875rem;color:var(--muted);margin-top:0.5rem">👥 52 investors</div>
+    </div>
+    <div class="dh-right"><div class="dh-yield">5%</div><div class="dh-yield-label">Annual Premium Yield</div></div>
+  </div>
+  <div class="explainer"><div class="ico">📈</div><p>This market is live. Retrocessional terrorism coverage modeled on Pool Re's Baltic PCC structure. Provides UK government-backed mutual reinsurance against qualifying terrorism events on UK soil.</p></div>
+  <div class="rh-section">
+    <div class="rh-head"><div class="rh-logo" style="background:rgba(26,90,184,0.1);color:var(--blue-primary)">🇬🇧</div><div><div class="rh-name">Pool Re</div><div class="rh-type">UK Mutual Reinsurer • Terrorism Coverage</div></div></div>
+    <div class="rh-desc">Pool Re is the UK government-backed mutual reinsurer providing terrorism coverage to the UK insurance market. This on-chain market extends Pool Re's capital structure through parametric terrorism coverage with triggers based on qualifying UK terrorism events.</div>
+    <div class="rh-tags"><span class="rh-tag">Reinsurer</span><span class="rh-tag">UK Terrorism</span><span class="rh-tag">Parametric Trigger</span><span class="rh-tag">Government Backed</span></div>
+  </div>
+  <div class="sstrip">
+    <div class="ss"><div class="sl">Coverage (TVL)</div><div class="sv">$5,700,000</div></div>
+    <div class="ss"><div class="sl">Token Price</div><div class="sv">$0.99</div></div>
+    <div class="ss"><div class="sl">Redemption at Maturity</div><div class="sv">$1.00</div></div>
+    <div class="ss"><div class="sl">Your Claimable Premium</div><div class="sv" style="color:var(--blue-primary)">$1,425</div></div>
+  </div>
+  <div class="two">
+    <div class="panel">
+      <div class="ph"><h3>Order Book</h3><span style="font-size:0.75rem;color:var(--muted)">8 trades • Last: $0.99</span></div>
+    <div class="pb">
+      <div class="ob-mid">
+        <span class="lbl">Mid Price</span>
+        <span class="price">$0.985</span>
+        <span class="lbl">Spread: $0.01 (1.01%)</span>
+      </div>
+      <div class="ob-sides">
+        <div>
+          <h4 style="color:#dc2626">Sellers (Asks)</h4>
+          <div class="ob-lv"><div class="bg" style="background:#dc2626;width:25%"></div><span class="ask">$1.00</span><span>$35,000</span></div>
+          <div class="ob-lv"><div class="bg" style="background:#dc2626;width:55%"></div><span class="ask">$0.99</span><span>$120,000</span></div>
+          <div class="ob-lv"><div class="bg" style="background:#dc2626;width:80%"></div><span class="ask">$0.98</span><span>$85,000</span></div>
+        </div>
+        <div>
+          <h4 style="color:#16a34a">Buyers (Bids)</h4>
+          <div class="ob-lv"><div class="bg" style="background:#16a34a;width:65%"></div><span class="bid">$0.98</span><span>$95,000</span></div>
+          <div class="ob-lv"><div class="bg" style="background:#16a34a;width:45%"></div><span class="bid">$0.97</span><span>$60,000</span></div>
+          <div class="ob-lv"><div class="bg" style="background:#16a34a;width:30%"></div><span class="bid">$0.96</span><span>$40,000</span></div>
+        </div>
+      </div>
+    </div>
+    </div>
+    <div>
+      <div class="panel" style="margin-bottom:1rem">
+        <div class="ph"><h3>Trade</h3></div>
+        <div class="pb">
+          <div class="ttog"><button class="buy-on">Buy</button><button>Sell</button></div>
+          <div style="font-size:0.6875rem;color:var(--muted);margin-bottom:0.75rem">USDC Balance: $95,200</div>
+          <div class="field">
+            <div class="field-label"><span class="l">Price per token</span></div>
+            <div class="input-box"><input type="number" value="0.98" step="0.01"><span class="unit">USDC</span></div>
+          </div>
+          <div class="field">
+            <div class="field-label"><span class="l">Quantity</span></div>
+            <div class="input-box"><input type="number" value="10000"><span class="unit">tokens</span></div>
+          </div>
+          <div class="info-box">
+            <div class="ir"><span class="k">Total cost</span><span class="v">$9,800</span></div>
+            <div class="ir"><span class="k">Redeems at maturity for</span><span class="v">$10,000</span></div>
+            <div class="ir"><span class="k">Price upside</span><span class="v g">+2.04%</span></div>
+            <div class="ir"><span class="k">Plus premium yield</span><span class="v g">~5% APY</span></div>
+          </div>
+          <button class="btn btn-green btn-block">Buy 10,000 Tokens</button>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="pb" style="display:flex;align-items:center;justify-content:space-between">
+          <div><div style="font-size:0.625rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em">Unclaimed Premium</div><div style="font-size:1.375rem;font-weight:700;color:var(--blue-primary)">$425.00</div></div>
+          <button class="btn btn-accent btn-sm">Claim</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.25rem;margin-top:1.5rem">
+    <div class="panel">
+      <div class="ph"><h3>Market Progress</h3></div>
+      <div class="pb">
+        <div class="stepper">
+          <div class="stp done"><div class="stl">1. Commitment</div></div>
+          <div class="stp done"><div class="stl">2. Deposit Day</div></div>
+          <div class="stp now"><div class="stl">3. Active</div></div>
+          <div class="stp"><div class="stl">4. Settlement</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="ph"><h3>Risk Tiers</h3><span style="font-size:0.6875rem;color:var(--muted)">What could reduce your capital</span></div>
+      <div class="pb">
+        <div class="rtier"><div class="rdot" style="background:#d97706"></div><div class="ri"><div class="rn">Conventional Attack</div><div class="rt">Qualifying UK terrorism event — conventional weapons</div></div><div class="rs" style="color:#d97706">-25%</div></div>
+        <div class="rtier"><div class="rdot" style="background:#ea580c"></div><div class="ri"><div class="rn">Major Attack</div><div class="rt">Multi-site or high-casualty terrorism event</div></div><div class="rs" style="color:#ea580c">-50%</div></div>
+        <div class="rtier"><div class="rdot" style="background:#dc2626"></div><div class="ri"><div class="rn">CBRN Event</div><div class="rt">Chemical, biological, radiological, or nuclear attack</div></div><div class="rs" style="color:#dc2626">-100%</div></div>
+        <p style="font-size:0.6875rem;color:var(--muted);margin-top:0.75rem;line-height:1.5">Triggered by UK government classification of qualifying terrorism events. Below conventional threshold, no payout occurs.</p>
+      </div>
+    </div>
+  </div>
+  <!-- Premium Timeline -->
+  <div style="margin-top:2rem">
+    <h3 style="font-size:1rem;font-weight:700;margin-bottom:1rem">Premium Payments</h3>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-bottom:1.5rem">
+      <div class="panel"><div class="pb" style="text-align:center">
+        <div style="font-size:0.625rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em">Total Paid</div>
+        <div style="font-size:1.25rem;font-weight:800;color:var(--blue-primary);margin-top:0.25rem">$142,500</div>
+        <div style="font-size:0.6875rem;color:var(--muted)">2 of 8 quarters</div>
+      </div></div>
+      <div class="panel"><div class="pb" style="text-align:center">
+        <div style="font-size:0.625rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em">Claimed by Holders</div>
+        <div style="font-size:1.25rem;font-weight:800;margin-top:0.25rem">$119,700</div>
+        <div style="font-size:0.6875rem;color:var(--muted)">84% claimed</div>
+      </div></div>
+      <div class="panel"><div class="pb" style="text-align:center">
+        <div style="font-size:0.625rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em">Unclaimed in Vault</div>
+        <div style="font-size:1.25rem;font-weight:800;color:var(--blue-primary);margin-top:0.25rem">$22,800</div>
+        <div style="font-size:0.6875rem;color:var(--muted)">Available to claim</div>
+      </div></div>
+    </div>
+    <div style="display:flex;gap:0;position:relative;margin-bottom:0.5rem">
+      <div style="position:absolute;top:14px;left:20px;right:20px;height:3px;background:var(--secondary);border-radius:2px"></div>
+      <div style="position:absolute;top:14px;left:20px;width:25%;height:3px;background:var(--blue-primary);border-radius:2px"></div>
+      <div style="flex:1;text-align:center;position:relative;z-index:1">
+        <div style="width:28px;height:28px;border-radius:50%;background:#16a34a;color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:0.6875rem;font-weight:700">✓</div>
+        <div style="font-size:0.6875rem;font-weight:600;margin-top:0.375rem">$71,250</div>
+        <div style="font-size:0.5625rem;color:var(--muted)">Q4 2025</div>
+      </div>
+      <div style="flex:1;text-align:center;position:relative;z-index:1">
+        <div style="width:28px;height:28px;border-radius:50%;background:#16a34a;color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:0.6875rem;font-weight:700">✓</div>
+        <div style="font-size:0.6875rem;font-weight:600;margin-top:0.375rem">$71,250</div>
+        <div style="font-size:0.5625rem;color:var(--muted)">Q1 2026</div>
+      </div>
+      <div style="flex:1;text-align:center;position:relative;z-index:1">
+        <div style="width:28px;height:28px;border-radius:50%;background:var(--blue-primary);color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:0.625rem;font-weight:700">→</div>
+        <div style="font-size:0.6875rem;font-weight:600;margin-top:0.375rem">$71,250</div>
+        <div style="font-size:0.5625rem;color:var(--blue-primary);font-weight:600">Apr 10</div>
+      </div>
+      <div style="flex:1;text-align:center;position:relative;z-index:1">
+        <div style="width:28px;height:28px;border-radius:50%;background:var(--secondary);color:var(--muted);display:inline-flex;align-items:center;justify-content:center;font-size:0.6875rem;font-weight:700">Q3</div>
+        <div style="font-size:0.6875rem;font-weight:600;margin-top:0.375rem;color:var(--muted)">$71,250</div>
+        <div style="font-size:0.5625rem;color:var(--muted)">Jul 2026</div>
+      </div>
+    </div>
+    <div style="text-align:center;font-size:0.6875rem;color:var(--muted);margin-top:0.75rem">Next payment due <strong style="color:var(--text)">Apr 10, 2026</strong> • Advance deposit remaining: <strong style="color:#16a34a">$285,000</strong></div>
+  </div>
+</main>
+
+<!-- ═══════════════════════════════════════════
+     DETAIL: MATURED-PANDEMIC
+     ═══════════════════════════════════════════ -->
+<main id="p-matured-pandemic" class="hidden">
+  <div class="back" onclick="go('markets')">← Markets</div>
+  <div class="dh">
+    <div class="dh-left">
+      <h1>🦠 Pandemic Protection <span class="badge b-trig">Triggered</span></h1>
+      <div class="sub">Global • IBRD PEF • Triggered Jan 2026</div>
+      <div style="font-size:0.6875rem;color:var(--muted);margin-top:0.5rem">👥 201 investors</div>
+    </div>
+    <div class="dh-right"><div class="dh-yield">11%</div><div class="dh-yield-label">Premium Rate</div></div>
+  </div>
+  <div class="explainer"><div class="ico">⚠️</div><p>This market was <strong>triggered</strong> by parametric pandemic thresholds in January 2026. A portion of capital was paid to the risk holder based on severity tier. Remaining capital plus premium is available for redemption at $0.42 per token.</p></div>
+  <div class="rh-section">
+    <div class="rh-head"><div class="rh-logo" style="background:rgba(220,38,38,0.1);color:#dc2626">🏦</div><div><div class="rh-name">World Bank PEF</div><div class="rh-type">Pandemic Emergency Financing Facility</div></div></div>
+    <div class="rh-desc">The World Bank's Pandemic Emergency Financing Facility (PEF) provides rapid financing to developing countries during pandemics. This on-chain market was triggered when parametric indicators for a novel pathogen met the outbreak threshold, triggering a 58% payout to the risk holder.</div>
+    <div class="rh-tags"><span class="rh-tag">Development Finance</span><span class="rh-tag">Pandemic Risk</span><span class="rh-tag">Parametric Trigger</span><span class="rh-tag">TRIGGERED</span></div>
+  </div>
+  <div class="sstrip">
+    <div class="ss"><div class="sl">Coverage Amount</div><div class="sv">$4,000,000</div></div>
+    <div class="ss"><div class="sl">Premium Rate</div><div class="sv">11% APY</div></div>
+    <div class="ss"><div class="sl">Redemption Rate</div><div class="sv" style="color:#dc2626">$0.42 / token</div></div>
+    <div class="ss"><div class="sl">Triggered</div><div class="sv">Jan 2026</div></div>
+  </div>
+  <div class="two">
+    <div>
+      <div class="panel" style="margin-bottom:1.25rem">
+        <div class="ph"><h3>Market Progress</h3></div>
+        <div class="pb">
+          <div class="stepper">
+            <div class="stp done"><div class="stl">1. Commitment</div></div>
+            <div class="stp done"><div class="stl">2. Deposit Day</div></div>
+            <div class="stp done"><div class="stl">3. Active</div></div>
+            <div class="stp now"><div class="stl">4. Settlement</div></div>
+          </div>
+          <div style="text-align:center;padding:1.5rem 0">
+            <div style="font-size:1.25rem;margin-bottom:0.5rem">⚠️</div>
+            <div style="font-size:1rem;font-weight:700;color:#dc2626;margin-bottom:0.25rem">Triggering Event Occurred</div>
+            <div style="font-size:0.8125rem;color:var(--muted)">Pathogen outbreak exceeded defined parameters. 58% of coverage was paid to the risk holder. Remaining 42% is available for token redemption.</div>
+          </div>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="ph"><h3>Market Summary</h3></div>
+        <div class="pb">
+          <div class="info-box">
+            <div class="ir"><span class="k">Total coverage provided</span><span class="v">$4,000,000</span></div>
+            <div class="ir"><span class="k">Duration</span><span class="v">24 months</span></div>
+            <div class="ir"><span class="k">Premium distributed before trigger</span><span class="v g">$220,000</span></div>
+            <hr class="divider">
+            <div class="ir"><span class="k">Triggering event</span><span class="v" style="color:#dc2626">Pandemic outbreak</span></div>
+            <div class="ir"><span class="k">Payout to risk holder</span><span class="v" style="color:#dc2626">$2,320,000 (58%)</span></div>
+            <div class="ir"><span class="k">Investor principal returned</span><span class="v">42% ($0.42/token)</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div class="panel">
+        <div class="ph"><h3>Redeem Tokens</h3></div>
+        <div class="pb">
+          <div class="info-box">
+            <div class="ir"><span class="k">Your balance</span><span class="v">50,000 tokens</span></div>
+            <div class="ir"><span class="k">Redemption rate</span><span class="v" style="color:#dc2626">$0.42 / token</span></div>
+            <div class="ir"><span class="k">Redeemable value</span><span class="v" style="font-weight:700">$21,000</span></div>
+            <hr class="divider">
+            <div class="ir"><span class="k">Unclaimed premium</span><span class="v g">$1,200</span></div>
+          </div>
+          <button class="btn btn-accent btn-block" style="margin-bottom:0.5rem">Redeem All Tokens</button>
+          <button class="btn btn-ghost btn-block">Claim Premium Only</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- Premium Timeline - Triggered variant -->
+  <div style="margin-top:2rem">
+    <h3 style="font-size:1rem;font-weight:700;margin-bottom:1rem">Premium Payments</h3>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-bottom:1.5rem">
+      <div class="panel"><div class="pb" style="text-align:center">
+        <div style="font-size:0.625rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em">Total Distributed (Before Trigger)</div>
+        <div style="font-size:1.25rem;font-weight:800;color:var(--blue-primary);margin-top:0.25rem">$88,000</div>
+        <div style="font-size:0.6875rem;color:var(--muted)">2 of 4 quarters</div>
+      </div></div>
+      <div class="panel"><div class="pb" style="text-align:center">
+        <div style="font-size:0.625rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em">Claimed by Holders</div>
+        <div style="font-size:1.25rem;font-weight:800;margin-top:0.25rem">$82,500</div>
+        <div style="font-size:0.6875rem;color:var(--muted)">94% claimed</div>
+      </div></div>
+      <div class="panel"><div class="pb" style="text-align:center">
+        <div style="font-size:0.625rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em">Payout to Risk Holder</div>
+        <div style="font-size:1.25rem;font-weight:800;color:#dc2626;margin-top:0.25rem">58%</div>
+        <div style="font-size:0.6875rem;color:var(--muted)">Severity tier applied</div>
+      </div></div>
+    </div>
+    <div style="display:flex;gap:0;position:relative;margin-bottom:0.5rem">
+      <div style="position:absolute;top:14px;left:20px;right:20px;height:3px;background:#dc2626;border-radius:2px"></div>
+      <div style="flex:1;text-align:center;position:relative;z-index:1">
+        <div style="width:28px;height:28px;border-radius:50%;background:#16a34a;color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:0.6875rem;font-weight:700">✓</div>
+        <div style="font-size:0.6875rem;font-weight:600;margin-top:0.375rem">$44,000</div>
+        <div style="font-size:0.5625rem;color:var(--muted)">Q1 2025</div>
+      </div>
+      <div style="flex:1;text-align:center;position:relative;z-index:1">
+        <div style="width:28px;height:28px;border-radius:50%;background:#16a34a;color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:0.6875rem;font-weight:700">✓</div>
+        <div style="font-size:0.6875rem;font-weight:600;margin-top:0.375rem">$44,000</div>
+        <div style="font-size:0.5625rem;color:var(--muted)">Q2 2025</div>
+      </div>
+      <div style="flex:1;text-align:center;position:relative;z-index:1">
+        <div style="width:28px;height:28px;border-radius:50%;background:#dc2626;color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:0.6875rem;font-weight:700">✗</div>
+        <div style="font-size:0.6875rem;font-weight:600;margin-top:0.375rem;color:#dc2626">TRIGGERED</div>
+        <div style="font-size:0.5625rem;color:#dc2626;font-weight:600">Jan 2026</div>
+      </div>
+      <div style="flex:1;text-align:center;position:relative;z-index:1">
+        <div style="width:28px;height:28px;border-radius:50%;background:var(--secondary);color:var(--muted);display:inline-flex;align-items:center;justify-content:center;font-size:0.6875rem;font-weight:700">Q4</div>
+        <div style="font-size:0.6875rem;font-weight:600;margin-top:0.375rem;color:var(--muted)">Not Paid</div>
+        <div style="font-size:0.5625rem;color:var(--muted)">Cancelled</div>
+      </div>
+    </div>
+    <div style="text-align:center;font-size:0.6875rem;color:#dc2626;font-weight:600;margin-top:0.75rem">Triggering event occurred • Market settled with partial principal loss</div>
+  </div>
+</main>
+
+<!-- ═══════════════════════════════════════════
+     DETAIL: MATURED-LOTTERY
+     ═══════════════════════════════════════════ -->
+<main id="p-matured-lottery" class="hidden">
+  <div class="back" onclick="go('markets')">← Markets</div>
+  <div class="dh">
+    <div class="dh-left">
+      <h1>🎰 Lottery Jackpot <span class="badge b-done">Matured</span></h1>
+      <div class="sub">Europe • Multi-game • Coverage ended Dec 2025</div>
+      <div style="font-size:0.6875rem;color:var(--muted);margin-top:0.5rem">👥 28 investors</div>
+    </div>
+    <div class="dh-right"><div class="dh-yield">7%</div><div class="dh-yield-label">Premium Rate</div></div>
+  </div>
+  <div class="explainer"><div class="ico">✅</div><p>This market has <strong>matured without a triggering event</strong>. All investor capital has been preserved. Token holders can redeem their tokens at $1.00 per token and claim any uncollected premium.</p></div>
+  <div class="rh-section">
+    <div class="rh-head"><div class="rh-logo" style="background:rgba(26,90,184,0.1);color:var(--blue-primary)">🎲</div><div><div class="rh-name">MyLotto24</div><div class="rh-type">Lottery Operator • Europe</div></div></div>
+    <div class="rh-desc">MyLotto24 is a European lottery platform seeking jackpot payout coverage modeled on the Hoplon II structure. This market covers qualifying lottery jackpot winnings and tax shortfalls across European lottery games operated by the company.</div>
+    <div class="rh-tags"><span class="rh-tag">Lottery Operator</span><span class="rh-tag">Europe</span><span class="rh-tag">Indemnity Trigger</span><span class="rh-tag">Jackpot Coverage</span></div>
+  </div>
+  <div class="sstrip">
+    <div class="ss"><div class="sl">Coverage Amount</div><div class="sv">$2,000,000</div></div>
+    <div class="ss"><div class="sl">Premium Rate</div><div class="sv">7% APY</div></div>
+    <div class="ss"><div class="sl">Redemption Rate</div><div class="sv">$1.00</div></div>
+    <div class="ss"><div class="sl">Ended</div><div class="sv">Dec 2025</div></div>
+  </div>
+  <div class="two">
+    <div>
+      <div class="panel" style="margin-bottom:1.25rem">
+        <div class="ph"><h3>Market Progress</h3></div>
+        <div class="pb">
+          <div class="stepper">
+            <div class="stp done"><div class="stl">1. Commitment</div></div>
+            <div class="stp done"><div class="stl">2. Deposit Day</div></div>
+            <div class="stp done"><div class="stl">3. Active</div></div>
+            <div class="stp now"><div class="stl">4. Settlement</div></div>
+          </div>
+          <div style="text-align:center;padding:1.5rem 0">
+            <div style="font-size:1.25rem;margin-bottom:0.5rem">✅</div>
+            <div style="font-size:1rem;font-weight:700;color:#16a34a;margin-bottom:0.25rem">Matured Successfully</div>
+            <div style="font-size:0.8125rem;color:var(--muted)">No triggering events occurred during the coverage period. All investor capital has been preserved and can be redeemed at par value.</div>
+          </div>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="ph"><h3>Market Summary</h3></div>
+        <div class="pb">
+          <div class="info-box">
+            <div class="ir"><span class="k">Total coverage provided</span><span class="v">$2,000,000</span></div>
+            <div class="ir"><span class="k">Duration</span><span class="v">12 months</span></div>
+            <div class="ir"><span class="k">Premium distributed</span><span class="v g">$140,000</span></div>
+            <hr class="divider">
+            <div class="ir"><span class="k">Triggering events</span><span class="v">0</span></div>
+            <div class="ir"><span class="k">Payout to risk holder</span><span class="v">$0</span></div>
+            <div class="ir"><span class="k">Investor principal returned</span><span class="v">100% ($1.00/token)</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div class="panel">
+        <div class="ph"><h3>Redeem Tokens</h3></div>
+        <div class="pb">
+          <div class="info-box">
+            <div class="ir"><span class="k">Your balance</span><span class="v">25,000 tokens</span></div>
+            <div class="ir"><span class="k">Redemption rate</span><span class="v" style="color:#16a34a">$1.00 / token</span></div>
+            <div class="ir"><span class="k">Redeemable value</span><span class="v" style="font-weight:700">$25,000</span></div>
+            <hr class="divider">
+            <div class="ir"><span class="k">Unclaimed premium</span><span class="v g">$350</span></div>
+          </div>
+          <button class="btn btn-accent btn-block" style="margin-bottom:0.5rem">Redeem All Tokens</button>
+          <button class="btn btn-ghost btn-block">Claim Premium Only</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- Premium Timeline -->
+  <div style="margin-top:2rem">
+    <h3 style="font-size:1rem;font-weight:700;margin-bottom:1rem">Premium Payments</h3>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-bottom:1.5rem">
+      <div class="panel"><div class="pb" style="text-align:center">
+        <div style="font-size:0.625rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em">Total Distributed</div>
+        <div style="font-size:1.25rem;font-weight:800;color:#16a34a;margin-top:0.25rem">$140,000</div>
+        <div style="font-size:0.6875rem;color:var(--muted)">4 of 4 quarters</div>
+      </div></div>
+      <div class="panel"><div class="pb" style="text-align:center">
+        <div style="font-size:0.625rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em">Claimed by Holders</div>
+        <div style="font-size:1.25rem;font-weight:800;margin-top:0.25rem">$134,800</div>
+        <div style="font-size:0.6875rem;color:var(--muted)">96% claimed</div>
+      </div></div>
+      <div class="panel"><div class="pb" style="text-align:center">
+        <div style="font-size:0.625rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em">Still Redeemable</div>
+        <div style="font-size:1.25rem;font-weight:800;color:var(--blue-primary);margin-top:0.25rem">$5,200</div>
+        <div style="font-size:0.6875rem;color:var(--muted)">Claim anytime</div>
+      </div></div>
+    </div>
+    <div style="display:flex;gap:0;position:relative;margin-bottom:0.5rem">
+      <div style="position:absolute;top:14px;left:20px;right:20px;height:3px;background:#16a34a;border-radius:2px"></div>
+      <div style="flex:1;text-align:center;position:relative;z-index:1">
+        <div style="width:28px;height:28px;border-radius:50%;background:#16a34a;color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:0.6875rem;font-weight:700">✓</div>
+        <div style="font-size:0.6875rem;font-weight:600;margin-top:0.375rem">$35,000</div>
+        <div style="font-size:0.5625rem;color:var(--muted)">Q1 2025</div>
+      </div>
+      <div style="flex:1;text-align:center;position:relative;z-index:1">
+        <div style="width:28px;height:28px;border-radius:50%;background:#16a34a;color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:0.6875rem;font-weight:700">✓</div>
+        <div style="font-size:0.6875rem;font-weight:600;margin-top:0.375rem">$35,000</div>
+        <div style="font-size:0.5625rem;color:var(--muted)">Q2 2025</div>
+      </div>
+      <div style="flex:1;text-align:center;position:relative;z-index:1">
+        <div style="width:28px;height:28px;border-radius:50%;background:#16a34a;color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:0.6875rem;font-weight:700">✓</div>
+        <div style="font-size:0.6875rem;font-weight:600;margin-top:0.375rem">$35,000</div>
+        <div style="font-size:0.5625rem;color:var(--muted)">Q3 2025</div>
+      </div>
+      <div style="flex:1;text-align:center;position:relative;z-index:1">
+        <div style="width:28px;height:28px;border-radius:50%;background:#16a34a;color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:0.6875rem;font-weight:700">✓</div>
+        <div style="font-size:0.6875rem;font-weight:600;margin-top:0.375rem">$35,000</div>
+        <div style="font-size:0.5625rem;color:var(--muted)">Q4 2025</div>
+      </div>
+    </div>
+    <div style="text-align:center;font-size:0.6875rem;color:#16a34a;font-weight:600;margin-top:0.75rem">All premium payments completed ✓</div>
+  </div>
+</main>
+
+<script>
+function go(p, el) {
+  document.querySelectorAll('main').forEach(m => m.classList.add('hidden'));
+  const map = {markets:'p-markets',hiw:'p-hiw',commit:'p-commit',active:'p-active',portfolio:'p-portfolio',matured:'p-matured',
+    'commit-seadrif':'p-commit-seadrif','commit-kizuna':'p-commit-kizuna',
+    'active-cyber':'p-active-cyber','active-terror':'p-active-terror',
+    'matured-pandemic':'p-matured-pandemic','matured-lottery':'p-matured-lottery'};
+  document.getElementById(map[p])?.classList.remove('hidden');
+  // Update nav
+  document.querySelectorAll('.nl').forEach(a => a.classList.remove('on'));
+  if (el) el.classList.add('on');
+  else {
+    const navMap = {markets:0, hiw:1, portfolio:2, commit:0, active:0, matured:0,
+      'commit-seadrif':0,'commit-kizuna':0,'active-cyber':0,'active-terror':0,'matured-pandemic':0,'matured-lottery':0};
+    document.querySelectorAll('.nl')[navMap[p]]?.classList.add('on');
+  }
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+</script>
+</body>
+</html>
