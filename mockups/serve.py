@@ -17,7 +17,7 @@ class NoCacheHandler(http.server.SimpleHTTPRequestHandler):
 
 if __name__ == "__main__":
     with socketserver.TCPServer(("", PORT), NoCacheHandler) as httpd:
-        print(f"RIZK mockup at http://localhost:{PORT}/RIZK.html")
+        print(f"RIZK mockup at http://localhost:{PORT}/")
         try:
             httpd.serve_forever()
         except KeyboardInterrupt:

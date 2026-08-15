@@ -4,12 +4,12 @@ Three self-contained, clickable prototypes for tokenized parametric disaster-ris
 No build step: plain HTML + React (UMD) + Babel-standalone, served statically.
 
 ```bash
-python3 serve.py            # http://localhost:8000
+python3 serve.py            # http://localhost:8000  → opens RIZK (index.html)
 ```
 
 | Page | What it is | Use it for |
 |---|---|---|
-| `RIZK.html` | The protocol marketplace, populated with **real catastrophe bonds** from the Artemis deal directory | Showing the platform idea at market scale |
+| `index.html` | **Default page.** The protocol marketplace, populated with **real catastrophe bonds** from the Artemis deal directory | Showing the platform idea at market scale |
 | `RIZK-SL.html` | Same product, centred on the **Sri Lanka pilot** (2 pilot vaults + the 7 market deals) | Investor / product demo |
 | `RESILIENCE.html` | The **Lionscraft / ADB facility console** — capital stack, AI monitoring, governance, controlled disbursement, results framework | Institutional / donor pitch |
 
